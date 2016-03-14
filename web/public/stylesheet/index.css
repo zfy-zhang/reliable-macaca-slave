@@ -1,0 +1,13 @@
+body {
+  opacity: 0;
+  -webkit-transition: opacity .1s ease;
+}
+.fadeIn {
+  opacity: 100!important;
+}
+footer {
+  min-height: 100px;
+}
+.table {
+  background: #fff;
+}

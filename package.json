@@ -1,0 +1,68 @@
+{
+  "name": "reliable-slave",
+  "version": "1.0.0",
+  "description": "slave part of the reliable adapt to macaca.",
+  "keywords": [
+    "ui test",
+    "ci",
+    "webdriver",
+    "testing",
+    "ui automation",
+    "test framework"
+  ],
+  "bin": {
+    "reliable": "./bin/reliable-slave",
+    "reliable-slave": "./bin/reliable-slave"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/macacajs/reliable-slave.git"
+  },
+  "dependencies": {
+    "babel": "~5.6.14",
+    "chalk": "~1.1.1",
+    "co": "^4.6.0",
+    "co-request": "~0.2.0",
+    "commander": "~2.0.0",
+    "detect-port": "~0.1.3",
+    "killing": "~1.0.1",
+    "koa": "~0.13.0",
+    "koa-favicon": "~1.2.0",
+    "koa-router": "~3.7.0",
+    "koa-static": "~1.4.7",
+    "macaca-client": "~1.0.0",
+    "npm-update": "~1.0.2",
+    "react": "~0.14.0",
+    "react-dom": "~0.14.2",
+    "reliable-git": "^0.1.3",
+    "reliable-logger": "~1.0.6",
+    "reliable-npm": "^0.2.1",
+    "xutil": "~1.0.0",
+    "yamljs": "~0.2.4",
+    "zmq": "2.13.0"
+  },
+  "devDependencies": {
+    "co-mocha": "~1.1.2",
+    "eslint": "~1.1.0",
+    "eslint-plugin-react": "~3.2.3",
+    "istanbul": "~0.3.17",
+    "should": "~7.0.4",
+    "should-http": "0.0.4"
+  },
+  "scripts": {
+    "lint": "make lint"
+  },
+  "precommit": [
+    "lint"
+  ],
+  "engines": {
+    "node": ">=4.2.1"
+  },
+  "preferGlobal": true,
+  "homepage": "https://github.com/macacajs/reliable-slave",
+  "author": "xudafeng",
+  "email": "xudafeng@126.com",
+  "blog": "http://xdf.me",
+  "license": "MIT"
+}

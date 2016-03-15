@@ -38,7 +38,3 @@ Before deploy the reliable-slave, there should be a reliable-master server runni
 $ reliable server -m <reliable-master:port> --verbose
 ```
 After initialization successfully. Server logs will be shown in your terminal.
-
-## License
-
-[MIT](LICENSE)

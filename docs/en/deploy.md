@@ -30,7 +30,7 @@ After enviroment checking and installation, it is ready to deploy the reliable-s
 
 ## Deployment
 
-Before deploy the reliable-slave, there should be a reliable-master server running already, if there wasn't, you should deploy the [reliable-master](http://github.com/macacajs/reliable-master) first. After the reliable-master server is running, we could use command to deploy reliable-slave.
+Before deploy the reliable-slave, there should be a reliable-master server running already, if there wasn't, you should deploy the [reliable-master](https://github.com/reliablejs/reliable-master) first. After the reliable-master server is running, we could use command to deploy reliable-slave.
 
 ### For Development:
 

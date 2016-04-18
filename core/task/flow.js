@@ -93,7 +93,11 @@ module.exports = function *(msg, options) {
 
     var ymlFile = path.join(tempDir, '.macaca.yml');
     logger.debug('Task %s YAML start parsering...', msg.taskId);
-    ymlObject = YAML.load(ymlFile);
+    try {
+      ymlObject = YAML.load(ymlFile);
+    } catch (e) {
+      logger.debug('.macaca.yml does not exists!');
+    }
 
     gitResult = yield gitRepo.latestCommitInfo();
 
@@ -125,7 +129,6 @@ module.exports = function *(msg, options) {
     var runner = createRunner({
       cwd: tempDir,
       directory: 'macaca-test',
-      server: ymlObject.webdriver_server,
       colors: true,
       always: true
     });

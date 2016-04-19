@@ -1,10 +1,13 @@
 # reliable-slave
 
 [![NPM version][npm-image]][npm-url]
+[![build status][travis-image]][travis-url]
 [![npm download][download-image]][download-url]
 
 [npm-image]: https://img.shields.io/npm/v/reliable-slave.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/reliable-slave
+[travis-image]: https://img.shields.io/travis/macacajs/reliable-slave.svg?style=flat-square
+[travis-url]: https://travis-ci.org/macacajs/reliable-slave
 [download-image]: https://img.shields.io/npm/dm/reliable-slave.svg?style=flat-square
 [download-url]: https://npmjs.org/package/reliable-slave
 

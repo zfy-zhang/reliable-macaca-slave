@@ -1,16 +1,3 @@
-/* ================================================================
- * reliable-slave by xdf(xudafeng[at]126.com)
- *
- * first created at : Tue Mar 17 2015 00:16:10 GMT+0800 (CST)
- *
- * ================================================================
- * Copyright xdf
- *
- * Licensed under the MIT License
- * You may not use this file except in compliance with the License.
- *
- * ================================================================ */
-
 'use strict';
 
 var killing = require('killing');
@@ -22,7 +9,7 @@ var killing = require('killing');
 module.exports = function(signal) {
   switch (signal) {
     case 'stop':
-      killing('reliable-slave', function(list) {
+      killing('reliable-macaca-slave', function(list) {
         if (list.length) {
           console.log('PID %s has been killed', list.join(', '));
         } else {

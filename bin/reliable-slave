@@ -21,7 +21,7 @@ var EOL = require('os').EOL;
 var chalk = require('chalk');
 var update = require('npm-update');
 var program = require('commander');
-var driver = require('macaca-client');
+var driver = require('macaca-cli');
 var spawn = require('child_process').spawn;
 
 var pkg = require('../package');

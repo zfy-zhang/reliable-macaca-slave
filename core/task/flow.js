@@ -21,7 +21,7 @@ var YAML = require('yamljs');
 var NPM = require('reliable-npm').NPM;
 var reliableGit = require('reliable-git');
 var spawn = require('child_process').spawn;
-var createRunner = require('macaca-client').Runner;
+var createRunner = require('macaca-cli').Runner;
 
 var analysis = require('./analysis');
 var _ = require('../../common/helper');
@@ -129,8 +129,7 @@ module.exports = function *(msg, options) {
     var runner = createRunner({
       cwd: tempDir,
       directory: 'macaca-test',
-      colors: true,
-      always: true
+      colors: true
     });
 
     // Send the result back immediately when receiving data.

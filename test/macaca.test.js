@@ -1,6 +1,6 @@
 'use strict';
 
-var reliable = require('..');
+var reliable = require('../core/reliable-macaca-slave');
 
 describe('server', function() {
   it('should be ok', function() {

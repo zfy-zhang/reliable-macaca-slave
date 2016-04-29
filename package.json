@@ -1,7 +1,7 @@
 {
-  "name": "reliable-slave",
+  "name": "reliable-macaca-slave",
   "version": "1.0.3",
-  "description": "slave part of the reliable adapt to macaca.",
+  "description": "slave part of the Reliable adapt to macaca.",
   "keywords": [
     "ui test",
     "ci",
@@ -11,13 +11,13 @@
     "test framework"
   ],
   "bin": {
-    "reliable": "./bin/reliable-slave",
-    "reliable-slave": "./bin/reliable-slave"
+    "reliable": "./bin/reliable-macaca-slave",
+    "reliable-macaca-slave": "./bin/reliable-macaca-slave"
   },
-  "main": "index.js",
+  "main": "./core/reliable-macaca-slave",
   "repository": {
     "type": "git",
-    "url": "git://github.com/macacajs/reliable-slave.git"
+    "url": "git://github.com/macacajs/reliable-macaca-slave.git"
   },
   "dependencies": {
     "babel": "~5.6.14",
@@ -60,7 +60,7 @@
     "node": ">=4.2.1"
   },
   "preferGlobal": true,
-  "homepage": "https://github.com/macacajs/reliable-slave",
+  "homepage": "https://github.com/macacajs/reliable-macaca-slave",
   "author": "xudafeng",
   "email": "xudafeng@126.com",
   "blog": "http://xdf.me",

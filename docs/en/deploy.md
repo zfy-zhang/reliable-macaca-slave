@@ -1,8 +1,8 @@
-# reliable-slave Deployment Guide
+# reliable-macaca-slave Deployment Guide
 
 ## Requirements
 
-First of all, in order to run iOS apps, the reliable-slave can only be installed on a mac.Then you need to install both the iOS and Android Dev Environment to run the test.
+First of all, in order to run iOS apps, the reliable-macaca-slave can only be installed on a mac.Then you need to install both the iOS and Android Dev Environment to run the test.
 
 run command to check environment:
 
@@ -15,7 +15,7 @@ $ macaca doctor
 
 You need to install Node.js before.
 
-And before install reliable-slave, you need to install the zeromq library first.
+And before install reliable-macaca-slave, you need to install the zeromq library first.
 
 ```shell
 $ brew install pkg-config
@@ -23,14 +23,14 @@ $ brew install zeromq
 
 # Then
 
-$ npm install reliable-slave -g
+$ npm install reliable-macaca-slave -g
 ```
 
-After enviroment checking and installation, it is ready to deploy the reliable-slave.
+After enviroment checking and installation, it is ready to deploy the reliable-macaca-slave.
 
 ## Deployment
 
-Before deploy the reliable-slave, there should be a reliable-master server running already, if there wasn't, you should deploy the [reliable-master](https://github.com/reliablejs/reliable-master) first. After the reliable-master server is running, we could use command to deploy reliable-slave.
+Before deploy the reliable-macaca-slave, there should be a reliable-master server running already, if there wasn't, you should deploy the [reliable-master](https://github.com/reliablejs/reliable-master) first. After the reliable-master server is running, we could use command to deploy reliable-macaca-slave.
 
 ### For Development:
 

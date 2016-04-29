@@ -7,9 +7,9 @@ clean:
 install:
 	npm install
 status:
-	ps -ef | grep reliable-slave
+	ps -ef | grep reliable-macaca-slave
 kill:
-	${npm_bin}/killing reliable-slave
+	${npm_bin}/killing reliable-macaca-slave
 lint:
 	${npm_bin}/eslint .
 test: install

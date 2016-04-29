@@ -7,7 +7,7 @@ First of all, in order to run iOS apps, the reliable-slave can only be installed
 run command to check environment:
 
 ```shell
-$ npm i macaca-client -g
+$ npm i macaca-cli -g
 $ macaca doctor
 ```
 

@@ -1,6 +1,6 @@
 {
   "name": "reliable-slave",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "slave part of the reliable adapt to macaca.",
   "keywords": [
     "ui test",
@@ -31,7 +31,7 @@
     "koa-favicon": "~1.2.0",
     "koa-router": "~3.7.0",
     "koa-static": "~1.4.7",
-    "macaca-client": "~1.0.0",
+    "macaca-cli": "~1.0.22",
     "npm-update": "~1.0.2",
     "react": "~0.14.0",
     "react-dom": "~0.14.2",

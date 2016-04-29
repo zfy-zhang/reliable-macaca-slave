@@ -1,6 +1,6 @@
 {
   "name": "reliable-macaca-slave",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "slave part of the Reliable adapt to macaca.",
   "keywords": [
     "ui test",

@@ -2,6 +2,8 @@
 
 FROM node:4.2.1
 
+MAINTAINER xudafeng@126.com
+
 ENV ZEROMQ_VERSION 4.1.4
 
 RUN apt-get update && apt-get install -y \
@@ -36,18 +38,3 @@ COPY . /reliable-macaca-slave
 WORKDIR /reliable-macaca-slave
 
 RUN npm install --registry=https://registry.npm.taobao.org
-
-RUN make build
-
-# SSH Key Config Start (Copy your own private key if needed)
-
-# RUN mkdir -p /root/.ssh
-# COPY ./ssh/id_rsa /root/.ssh/id_rsa
-# RUN chmod 700 /root/.ssh/id_rsa
-# RUN echo "Host example.com\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
-
-# SSH Key Config End
-
-EXPOSE 8080
-
-CMD ["./bin/reliable-macaca-slave", "server -p 8080"]

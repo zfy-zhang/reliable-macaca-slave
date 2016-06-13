@@ -29,3 +29,10 @@ $ reliable server -m <reliable-master:port> --verbose
 ## Docs
 
 [reliable-macaca-slave Deployment Guide](//macacajs.github.io/macaca/)
+
+## Docker
+
+```shell
+#build
+$ docker build -f Dockerfile .
+```

@@ -12,6 +12,8 @@ kill:
 	${npm_bin}/killing reliable-macaca-slave
 lint:
 	${npm_bin}/eslint .
+build-docker:
+	docker build -t="reliable-macaca-slave" .
 test: install
 	@node --harmony \
 		${npm_bin}/istanbul cover ${npm_bin}/_mocha \

@@ -59,10 +59,6 @@
   "engines": {
     "node": ">=4.2.1"
   },
-  "preferGlobal": true,
-  "homepage": "https://github.com/macacajs/reliable-macaca-slave",
-  "author": "xudafeng",
-  "email": "xudafeng@126.com",
-  "blog": "http://xdf.me",
+  "homepage": "https://github.com/reliablejs/reliable-macaca-slave",
   "license": "MIT"
 }

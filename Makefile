@@ -5,13 +5,15 @@ all: test
 clean:
 	rm -rf ./node_modules ./temp nohup.out
 install:
-	npm install
+	npm install --registry=https://registry.npm.taobao.org
 status:
 	ps -ef | grep reliable-macaca-slave
 kill:
 	${npm_bin}/killing reliable-macaca-slave
 lint:
 	${npm_bin}/eslint .
+build-docker:
+	docker build -t="reliable-macaca-slave" .
 test: install
 	@node --harmony \
 		${npm_bin}/istanbul cover ${npm_bin}/_mocha \

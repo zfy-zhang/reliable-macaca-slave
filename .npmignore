@@ -1,7 +1,4 @@
-*.swp
-*.swo
-*.swn
-.sw*
+*.sw*
 .travis.yml
 .drone.yml
 examples/

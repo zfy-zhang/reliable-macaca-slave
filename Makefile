@@ -5,7 +5,7 @@ all: test
 clean:
 	rm -rf ./node_modules ./temp nohup.out
 install:
-	npm install
+	npm install --registry=https://registry.npm.taobao.org
 status:
 	ps -ef | grep reliable-macaca-slave
 kill:

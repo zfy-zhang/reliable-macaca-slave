@@ -1,13 +1,13 @@
-# Dockerizing reliable-macaca-slave
+# Dockerizing Reliable-master
 
-FROM reliable-base-docker
+FROM reliable-docker-base
 
-MAINTAINER xudafeng@126.com
-
-WORKDIR /
+MAINTAINER xdf<xudafeng@126.com>
 
 COPY . /reliable-macaca-slave
 
 WORKDIR /reliable-macaca-slave
 
-RUN npm install --registry=https://registry.npm.taobao.org
+RUN make install
+
+ENTRYPOINT ["/reliable-macaca-slave/entrypoint.sh"]

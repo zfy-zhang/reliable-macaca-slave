@@ -112,10 +112,21 @@ module.exports = function *(msg, options) {
 
     logger.debug('Sending %s data...', msg.taskId);
 
+    var env = {};
+    var envFromServer = _body.split('#')[2];
+
+    envFromServer = envFromServer.split(',');
+    envFromServer.forEach(function(item) {
+      var key = item.split('=')[0];
+      var value = item.split('=')[1];
+      env[key] = value;
+    });
+
     // Run thels test and return a stream.
     var runner = createRunner({
       cwd: tempDir,
       directory: 'macaca-test',
+      env: env,
       colors: true
     });
 

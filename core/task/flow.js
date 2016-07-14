@@ -116,13 +116,11 @@ module.exports = function *(msg, options) {
     var envFromServer = _body.split('#')[2];
 
     envFromServer = envFromServer.split(',');
-    envFromServer.forEach(function (item) {
-
+    envFromServer.forEach(function(item) {
       var key = item.split('=')[0];
       var value = item.split('=')[1];
-
       env[key] = value;
-    })
+    });
 
     // Run thels test and return a stream.
     var runner = createRunner({

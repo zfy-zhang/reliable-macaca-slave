@@ -12,3 +12,4 @@ build/
 logs/
 .current.json
 dump.rdb
+*.un~

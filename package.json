@@ -40,7 +40,7 @@
     "reliable-npm": "^0.2.1",
     "xutil": "~1.0.0",
     "yamljs": "~0.2.4",
-    "zmq": "2.13.0"
+    "zmq": "2.15.3"
   },
   "devDependencies": {
     "co-mocha": "~1.1.2",

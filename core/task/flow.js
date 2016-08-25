@@ -4,7 +4,6 @@ var co = require('co');
 var fs = require('fs');
 var path = require('path');
 var EOL = require('os').EOL;
-var YAML = require('yamljs');
 var NPM = require('reliable-npm').NPM;
 var reliableGit = require('reliable-git');
 var spawn = require('child_process').spawn;
@@ -52,7 +51,6 @@ module.exports = function *(msg, options) {
   var finalResult = '';
   var hasError = false;
   var gitResult = '';
-  var ymlObject = {};
 
   try {
 
@@ -77,14 +75,6 @@ module.exports = function *(msg, options) {
       }),
       _.timeoutPromise(600, 'Git clone timeout for 10mins')
     ]);
-
-    var ymlFile = path.join(tempDir, '.macaca.yml');
-    logger.debug('Task %s YAML start parsering...', msg.taskId);
-    try {
-      ymlObject = YAML.load(ymlFile);
-    } catch (e) {
-      logger.debug('.macaca.yml does not exists!');
-    }
 
     gitResult = yield gitRepo.latestCommitInfo();
 

@@ -1,6 +1,6 @@
 {
   "name": "reliable-macaca-slave",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "slave part of the Reliable adapt to macaca.",
   "keywords": [
     "ui test",
@@ -39,7 +39,6 @@
     "reliable-logger": "~1.0.6",
     "reliable-npm": "^0.2.1",
     "xutil": "~1.0.0",
-    "yamljs": "~0.2.4",
     "zmq": "2.15.3"
   },
   "devDependencies": {

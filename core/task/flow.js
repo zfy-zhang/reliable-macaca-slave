@@ -17,9 +17,7 @@ var logger = require('../../common/logger');
 var getServerInfo = require('../server/monitor');
 
 // Set the npm repo
-var npm = new NPM({
-  onlyDev: true
-});
+var npm = new NPM();
 
 var status = {
   ACK: 'ack',

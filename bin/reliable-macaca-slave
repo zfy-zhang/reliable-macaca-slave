@@ -88,9 +88,13 @@ var printInfo = function(lines) {
   console.log(chalk.white(`${EOL}${res.join(EOL)}${EOL}`));
 };
 
+function shouldUpdate(data, module) {
+  return data && data.version && module.version !== data.version
+}
+
 function init(error, data) {
 
-  if (data && data.version && pkg.version !== data.version) {
+  if (shouldUpdate(data, pkg)) {
     printInfo([`version ${pkg.version} is outdate`, `run: npm i -g ${pkg.name}@${data.version}`]);
   }
 
@@ -106,18 +110,32 @@ function init(error, data) {
   });
 };
 
+function install(module) {
+  npm.install({
+    name: module,
+    cwd: '.'
+  })
+  .then(function() {
+    console.info(`${module} has been installed!`);
+  });
+}
+
 function installiOS() {
   if (os.platform() === 'darwin') {
     co(update, {
       name: 'macaca-ios',
       callback: function(err, data) {
-        npm.install({
-          name: 'macaca-ios',
-          cwd: '.'
-        })
-        .then(function() {
-          console.info('macaca-ios installed!');
-        });
+        try {
+          var iOS = require('macaca-ios/package');
+
+          if (shouldUpdate(data, iOS)) {
+            install('macaca-ios');
+          }
+        } catch (e) {
+          if (e.code === 'MODULE_NOT_FOUND') {
+            return install('macaca-ios');
+          }
+        }
       }
     });
   }

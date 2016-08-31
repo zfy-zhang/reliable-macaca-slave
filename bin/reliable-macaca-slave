@@ -3,6 +3,7 @@
 'use strict';
 
 var co = require('co');
+var os = require('os');
 var fs = require('fs');
 var path = require('path');
 var EOL = require('os').EOL;
@@ -10,11 +11,14 @@ var chalk = require('chalk');
 var update = require('npm-update');
 var program = require('commander');
 var driver = require('macaca-cli');
+var NPM = require('reliable-npm').NPM;
 var spawn = require('child_process').spawn;
 
 var pkg = require('../package');
 var signal = require('../init/signal');
 var request = require('../common/request');
+
+var npm = new NPM()
 
 program
   .option('-s, --signal <s>',   'send signal to process: stop, restart')
@@ -102,7 +106,24 @@ function init(error, data) {
   });
 };
 
+function installiOS() {
+  if (os.platform() === 'darwin') {
+    co(update, {
+      name: 'macaca-ios',
+      callback: function(err, data) {
+        npm.install({
+          name: 'macaca-ios',
+          cwd: '.'
+        })
+        .then(function() {
+          console.info('macaca-ios installed!');
+        });
+      }
+    });
+  }
+};
+
 co(update, {
   pkg: pkg,
   callback: init
-});
+}).then(installiOS);

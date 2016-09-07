@@ -158,12 +158,12 @@ module.exports = function *(msg, options) {
       global.__task_status = status.AVAILABLE;
 
       var execInfo = analysis(finalResult);
-      var bodyStatus = hasError ? bodyStatus.FAILED : execInfo.status;
+      var runnerStatus = hasError ? bodyStatus.FAILED : execInfo.status;
 
       var result = _.merge(basicData, {
         sysInfo: getServerInfo(),
         status: status.AVAILABLE,
-        bodyStatus: bodyStatus,
+        bodyStatus: runnerStatus,
         extra: _.merge(execInfo, {
           description: gitResult
         }),

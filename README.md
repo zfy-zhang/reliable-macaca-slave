@@ -6,8 +6,8 @@
 
 [npm-image]: https://img.shields.io/npm/v/reliable-macaca-slave.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/reliable-macaca-slave
-[travis-image]: https://img.shields.io/travis/macacajs/reliable-macaca-slave.svg?style=flat-square
-[travis-url]: https://travis-ci.org/macacajs/reliable-macaca-slave
+[travis-image]: https://img.shields.io/travis/reliablejs/reliable-macaca-slave.svg?style=flat-square
+[travis-url]: https://travis-ci.org/reliablejs/reliable-macaca-slave
 [download-image]: https://img.shields.io/npm/dm/reliable-macaca-slave.svg?style=flat-square
 [download-url]: https://npmjs.org/package/reliable-macaca-slave
 

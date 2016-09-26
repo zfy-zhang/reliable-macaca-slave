@@ -4,7 +4,6 @@ var co = require('co');
 var fs = require('fs');
 var path = require('path');
 var EOL = require('os').EOL;
-var YAML = require('yamljs');
 var NPM = require('reliable-npm').NPM;
 var reliableGit = require('reliable-git');
 var spawn = require('child_process').spawn;
@@ -17,9 +16,7 @@ var logger = require('../../common/logger');
 var getServerInfo = require('../server/monitor');
 
 // Set the npm repo
-var npm = new NPM({
-  onlyDev: true
-});
+var npm = new NPM();
 
 var status = {
   ACK: 'ack',
@@ -52,7 +49,6 @@ module.exports = function *(msg, options) {
   var finalResult = '';
   var hasError = false;
   var gitResult = '';
-  var ymlObject = {};
 
   try {
 
@@ -77,14 +73,6 @@ module.exports = function *(msg, options) {
       }),
       _.timeoutPromise(600, 'Git clone timeout for 10mins')
     ]);
-
-    var ymlFile = path.join(tempDir, '.macaca.yml');
-    logger.debug('Task %s YAML start parsering...', msg.taskId);
-    try {
-      ymlObject = YAML.load(ymlFile);
-    } catch (e) {
-      logger.debug('.macaca.yml does not exists!');
-    }
 
     gitResult = yield gitRepo.latestCommitInfo();
 
@@ -115,12 +103,14 @@ module.exports = function *(msg, options) {
     var env = {};
     var envFromServer = _body.split('#')[2];
 
-    envFromServer = envFromServer.split(',');
-    envFromServer.forEach(function(item) {
-      var key = item.split('=')[0];
-      var value = item.split('=')[1];
-      env[key] = value;
-    });
+    if (envFromServer) {
+      envFromServer = envFromServer.split(',');
+      envFromServer.forEach(function(item) {
+        var key = item.split('=')[0];
+        var value = item.split('=')[1];
+        env[key] = value;
+      });
+    }
 
     // Run thels test and return a stream.
     var runner = createRunner({
@@ -168,12 +158,12 @@ module.exports = function *(msg, options) {
       global.__task_status = status.AVAILABLE;
 
       var execInfo = analysis(finalResult);
-      var bodyStatus = hasError ? bodyStatus.FAILED : execInfo.status;
+      var runnerStatus = hasError ? bodyStatus.FAILED : execInfo.status;
 
       var result = _.merge(basicData, {
         sysInfo: getServerInfo(),
         status: status.AVAILABLE,
-        bodyStatus: bodyStatus,
+        bodyStatus: runnerStatus,
         extra: _.merge(execInfo, {
           description: gitResult
         }),

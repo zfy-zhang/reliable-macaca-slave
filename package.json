@@ -1,6 +1,6 @@
 {
   "name": "reliable-macaca-slave",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "slave part of the Reliable adapt to macaca.",
   "keywords": [
     "ui test",
@@ -31,8 +31,7 @@
     "koa-favicon": "~1.2.0",
     "koa-router": "~3.7.0",
     "koa-static": "~1.4.7",
-    "macaca-android": "^1.0.16",
-    "macaca-cli": "~1.0.22",
+    "macaca-cli": "~1.1.0",
     "npm-update": "~1.0.2",
     "react": "~0.14.0",
     "react-dom": "~0.14.2",
@@ -40,8 +39,13 @@
     "reliable-logger": "~1.0.6",
     "reliable-npm": "^0.2.1",
     "xutil": "~1.0.0",
-    "yamljs": "~0.2.4",
-    "zmq": "2.13.0"
+    "zmq": "2.15.3"
+  },
+  "optionalDependencies": {
+    "macaca-android": "^1.0.25",
+    "macaca-chrome": "^1.0.1",
+    "macaca-electron": "^1.1.2",
+    "macaca-ios": "^1.0.36"
   },
   "devDependencies": {
     "co-mocha": "~1.1.2",

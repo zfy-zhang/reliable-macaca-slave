@@ -1,26 +1,24 @@
 'use strict';
 
-var flow = require('./flow');
-var Channel = require('../slave/channel');
-var logger = require('../../common/logger');
-var getServerInfo = require('../server/monitor');
+const flow = require('./flow');
+const Channel = require('../slave/channel');
+const logger = require('../../common/logger');
+const getServerInfo = require('../server/monitor');
 
 // Machine status
-var status = {
+const status = {
   ACK: 'ack',
   AVAILABLE: 'available',
   BUSY: 'busy'
 };
 
 // Message type
-var type = {
+const type = {
   ACK: 'ack',
   TASK: 'task'
 };
 
-var isBusy = function() {
-  return global.__task_status === status.BUSY;
-};
+const isBusy = () => global.__task_status === status.BUSY;
 
 module.exports = function *(msg, options) {
   logger.info('Coming to processor...');
@@ -33,7 +31,7 @@ module.exports = function *(msg, options) {
 
   global.__task_status = status.BUSY;
 
-  var channel = Channel.getInstance();
+  const channel = Channel.getInstance();
 
   // Change the machine status to busy and notify master
   channel.send({

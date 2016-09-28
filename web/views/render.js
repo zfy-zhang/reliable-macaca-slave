@@ -22,7 +22,7 @@ module.exports = function(template, data) {
     const Component = require(file);
     var temp = ReactDOMServer.renderToStaticMarkup(React.createFactory(Component)(data));
     html = `<!DOCTYPE html>${temp}`;
-  } catch(e) {
+  } catch (e) {
     logger.warn(e.stack);
     html = 'render template:' + template + ' failed';
   }

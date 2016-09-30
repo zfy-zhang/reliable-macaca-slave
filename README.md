@@ -16,6 +16,7 @@ reliable-macaca-slave is the slave part of the [Reliable](https://github.com/rel
 ## Installment
 
 ```shell
+$ brew install zeromq ## if you are using Mac os
 $ npm i reliable-macaca-slave -g
 ```
 
@@ -28,7 +29,7 @@ $ reliable server -m <reliable-master:port> --verbose
 
 ## Docs
 
-[reliable-macaca-slave Deployment Guide](//macacajs.github.io/macaca/)
+[reliable-macaca-slave Deployment Guide](//macacajs.github.io/macaca/slave-deployment.html)
 
 ## Docker
 

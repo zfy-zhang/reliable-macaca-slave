@@ -25,13 +25,13 @@ var status = {
  * Register to the master machine with ip and port
  */
 function *register(options) {
-
   var result = yield request({
     uri: options.master,
     form: {
       sysInfo: getServerInfo(),
       ip: options.ip,
-      port: options.port
+      port: options.port,
+      supportiOS: options.ios
     },
     method: 'post'
   });
@@ -64,7 +64,7 @@ function reregister(options, callback) {
     }
   }).catch(function(err) {
     logger.warn(err);
-  });;
+  });
 }
 
 /**

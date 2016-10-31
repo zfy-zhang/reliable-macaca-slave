@@ -13,6 +13,7 @@ var logger = require('../common/logger');
 var options = {
   webPort: 8080,
   verbose: false,
+  ios: false,
   port: 4000,
   registry: 'http://registry.npmjs.org'
 };
@@ -21,6 +22,7 @@ program
   .option('-p, --port <d>',       `set port for server (default: ${options.port})`)
   .option('-r, --registry <s>',   'set registry for node')
   .option('-m, --master <s>',     'register to pointed master')
+  .option('--ios',                `marking whether slave support iOS device (default is ${options.ios}) `)
   .option('--verbose',            'show more debugging information')
   .parse(process.argv);
 

@@ -1,3 +1,6 @@
+# 1.1.0  / 2016-10-31
+  * feat: support marking slave 
+
 # 1.0.5  / 2016-09-07
 
   * fix: `flow.js` bugfix

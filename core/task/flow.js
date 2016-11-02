@@ -117,7 +117,8 @@ module.exports = function *(msg, options) {
       cwd: tempDir,
       directory: 'macaca-test',
       env: env,
-      colors: true
+      colors: true,
+      framework: 'mocha'
     });
 
     // Send the result back immediately when receiving data.

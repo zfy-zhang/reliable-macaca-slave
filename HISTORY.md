@@ -1,3 +1,6 @@
+# 1.1.1  / 2016-11-2
+  * fix: adaptation macaca@1.1.13
+
 # 1.1.0  / 2016-10-31
   * feat: support marking slave 
 

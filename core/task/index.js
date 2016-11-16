@@ -29,7 +29,7 @@ module.exports = function *(msg, options) {
     return;
   }
 
-  global.__task_status = status.BUSY;
+  // global.__task_status = status.BUSY;
 
   const channel = Channel.getInstance();
 

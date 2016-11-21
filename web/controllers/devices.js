@@ -28,9 +28,8 @@ function *getDeviceList(){
 
                             arrDeviceList.push({
                                 serialNumber:device.id,
-                                moedl:properties['ro.product.model'],
+                                model:properties['ro.product.model'],
                                 brand:properties['ro.product.brand'],
-                                facturer:properties['ro.product.manufacturer'],
                                 releaseVersion:properties['ro.build.version.release'],
                                 sdkVersion:properties['ro.build.version.sdk'],
                                 abi:properties['ro.product.cpu.abi'],
@@ -39,23 +38,18 @@ function *getDeviceList(){
                                 plantForm:'Android',
                                 status:'1'
                             });
-                            for(var i=0;i<arrDeviceList.length;i++){
-                                console.log(arrDeviceList[i]);
-                            }
-
                         }).catch(function(err) {
-                            console.error('Something went wrong:', err.stack)
                             arrDeviceList.push({
                                 errorMessage:err.stack,
                                 status:'4'
                             });
                         }).then(function(property) {
-                            //console.log('property:', property)
+
                         })
                 })
             })
            .then(function(property) {
-               //console.log('property:', property)
+
            })
         client.exit;
     }else {

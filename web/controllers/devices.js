@@ -57,7 +57,7 @@ function *getDeviceList(){
            .then(function(property) {
                //console.log('property:', property)
            })
-
+        client.exit;
     }else {
         strText = cp.execSync('xcrun simctl list devices').toString();
         strText.replace(/\r?\n\s*(.+?)\s+\((.+?)\) \(Booted\)/g, function(all, deviceName, udid){

@@ -20,7 +20,9 @@
     "url": "git://github.com/macacajs/reliable-macaca-slave.git"
   },
   "dependencies": {
+    "adbkit": "^2.6.2",
     "babel": "~5.6.14",
+    "bluebird": "^3.4.6",
     "chalk": "~1.1.1",
     "child_process": "^1.0.2",
     "co": "^4.6.0",
@@ -33,6 +35,7 @@
     "koa-router": "~3.7.0",
     "koa-static": "~1.4.7",
     "macaca-cli": "~1.1.0",
+    "mongoose": "^4.6.8",
     "npm-update": "~1.0.2",
     "react": "~0.14.0",
     "react-dom": "~0.14.2",

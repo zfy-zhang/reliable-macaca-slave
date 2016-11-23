@@ -11,6 +11,7 @@ var client = adb.createClient()
 
 function *getDeviceList() {
     var arrDeviceList = [];
+    var iosDevices = [];
     var strText, match;
     var platform = os.platform();
     yield client.listDevices()

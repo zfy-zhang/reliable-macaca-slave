@@ -13,7 +13,6 @@ function *getDeviceList(){
     var arrDeviceList = [];
     var strText, match;
     var platform=os.platform();
-
        yield client.listDevices()
             .then(function(devices) {
                 return Promise.filter(devices, function(device) {
@@ -70,28 +69,29 @@ function *getDeviceList(){
         }
     var list =[];
     var specificData=[];
-    for(var i=0;i<iosDevices.length;i++){
-        var ss = iosDevices[i];
-        var screen='';
-        for(var j=0;j<ss.length;j++){
-            var devicesArray = ss[j].toString('ascii').split(',');
-            var sss = devicesArray.toString('ascii').split(':');
-            list.push(sss[1]); }
-        specificData.push(list);
-        list=[];
+    if(iosDevices!=''){
+        for(var i=0;i<iosDevices.length;i++){
+            var ss = iosDevices[i];
+            var screen='';
+            for(var j=0;j<ss.length;j++){
+                var devicesArray = ss[j].toString('ascii').split(',');
+                var sss = devicesArray.toString('ascii').split(':');
+                list.push(sss[1]); }
+            specificData.push(list);
+            list=[];
+        }
+        var screen = '';
+        for(var i=0;i<specificData.length;i++){
+            var deviceSpecificData=specificData[i];
+            arrDeviceList.push({
+                serialNumber:deviceSpecificData[3].trim(),
+                model:'iPhone 6s', brand:deviceSpecificData[0].trim(),
+                releaseVersion:deviceSpecificData[2].trim(),
+                plantForm:'ios',
+                screen:'750x1334',
+                status:'1' });
+        }
     }
-    var screen = '';
-    for(var i=0;i<specificData.length;i++){
-        var deviceSpecificData=specificData[i];
-        arrDeviceList.push({
-            serialNumber:deviceSpecificData[3].trim(),
-            model:'iPhone 6s', brand:deviceSpecificData[0].trim(),
-            releaseVersion:deviceSpecificData[2].trim(),
-            plantForm:'ios',
-            screen:'750x1334',
-            status:'1' });
-    }
-
 }
     client.exit;
     return arrDeviceList;

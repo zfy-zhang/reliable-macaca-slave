@@ -13,7 +13,7 @@ function *getDeviceList(){
     var arrDeviceList = [];
     var strText, match;
     var platform=os.platform();
-    if(platform== 'win32'){
+
        yield client.listDevices()
             .then(function(devices) {
                 return Promise.filter(devices, function(device) {
@@ -51,16 +51,49 @@ function *getDeviceList(){
            .then(function(property) {
 
            })
-        client.exit;
-    }else {
-        strText = cp.execSync('xcrun simctl list devices').toString();
-        strText.replace(/\r?\n\s*(.+?)\s+\((.+?)\) \(Booted\)/g, function(all, deviceName, udid){
-            arrDeviceList.push({
-                name: deviceName,
-                udid: udid
-            });
+
+    if(platform=='darwin'){
+        strText = cp.execSync('idevice_id -l').toString();
+        var arr = strText.toString('ascii').split('\n').map(function (val) {
+            return String(val);
         });
+        for(var i=0;i<arr.length;i++){
+            if(arr[i]!=''){
+                var devices = cp.execSync('ideviceinfo -u '+arr[i]+'').toString();
+                var devicesArray = devices.toString('ascii').split('\n').filter( function (val) {
+                    return val.indexOf('UniqueDeviceID')==0||
+                        val.indexOf('DeviceClass')==0||
+                        val.indexOf('ProductVersion')==0||
+                        val.indexOf('DeviceName')==0;
+                });
+                iosDevices.push(devicesArray); }
+        }
+    var list =[];
+    var specificData=[];
+    for(var i=0;i<iosDevices.length;i++){
+        var ss = iosDevices[i];
+        var screen='';
+        for(var j=0;j<ss.length;j++){
+            var devicesArray = ss[j].toString('ascii').split(',');
+            var sss = devicesArray.toString('ascii').split(':');
+            list.push(sss[1]); }
+        specificData.push(list);
+        list=[];
     }
+    var screen = '';
+    for(var i=0;i<specificData.length;i++){
+        var deviceSpecificData=specificData[i];
+        arrDeviceList.push({
+            serialNumber:deviceSpecificData[3].trim(),
+            model:'iPhone 6s', brand:deviceSpecificData[0].trim(),
+            releaseVersion:deviceSpecificData[2].trim(),
+            plantForm:'ios',
+            screen:'750x1334',
+            status:'1' });
+    }
+
+}
+    client.exit;
     return arrDeviceList;
 }
 

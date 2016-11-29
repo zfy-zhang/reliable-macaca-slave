@@ -36,6 +36,7 @@ module.exports = function *(msg, options) {
   // Change the machine status to busy and notify master
   channel.send({
     type: type.TASK,
+    serialNumber: msg.serialNumber,
     taskId: msg.taskId,
     sysInfo: getServerInfo(),
     status: status.BUSY,

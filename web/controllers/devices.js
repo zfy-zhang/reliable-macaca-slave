@@ -22,7 +22,7 @@ function *getDeviceList() {
                         strText = cp.execSync('adb -s ' + device.id + ' shell wm size').toString();
                         var resolution;
 
-                        strText.replace(/Physical size:(.+?)\s+\r?\n/g, function (all, devicesName) {
+                        strText.replace(/Physical size: (.+?)\s+\r?\n/g, function (all, devicesName) {
                             resolution = devicesName.toString().trim();
                         });
 

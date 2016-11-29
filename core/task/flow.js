@@ -43,6 +43,7 @@ module.exports = function *(msg, options) {
   var channel = Channel.getInstance();
   var basicData = {
     type: type.TASK,
+    serialNumber: msg.serialNumber,
     taskId: msg.taskId
   };
 

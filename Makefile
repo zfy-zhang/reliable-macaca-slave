@@ -8,9 +8,6 @@ install:
 	npm install --registry=https://registry.npm.taobao.org
 status:
 	ps -ef | grep reliable-macaca-slave
-slave:
-	./bin/reliable-macaca-slave server -m localhost:3333 --verbose
-
 kill:
 	${npm_bin}/killing reliable-macaca-slave
 lint:

@@ -31,6 +31,7 @@ function *register(options) {
       sysInfo: getServerInfo(),
       ip: options.ip,
       port: options.port,
+      webPort:options.webPort,
       supportiOS: options.ios
     },
     method: 'post'
@@ -144,6 +145,8 @@ function main(options, callback) {
     }
 
     options.port = global.__port = yield detect(options.port);
+    options.webPort = yield detect(options.webPort);
+
     options.ip = _.ipv4;
 
     logger.debug('slave init with %s %j', EOL, options);

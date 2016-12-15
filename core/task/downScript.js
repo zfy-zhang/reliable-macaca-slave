@@ -5,6 +5,7 @@ var http = require('http');
 const co = require('co');
 var fs = require('fs');
 var path = require('path');
+var _ = require('../../common/helper');
 var iconv = require('iconv-lite');
 var request = require('request');
 var REQUST = require("co-request");
@@ -18,7 +19,7 @@ function *getScript(cloneOptions){
     var dataForm = JSON.parse(data);
     var checkmd5 = dataForm.checkmd5;
     var scriptName = dataForm.fileName;
-    var scriptFilePath = path.join(__dirname, '../../', '.script',checkmd5);
+    var scriptFilePath = path.join(__dirname, '../../', '.temp','.script',checkmd5);
 
     //获取app信息start
     var appInfo = yield getAppInfo(cloneOptions);
@@ -26,7 +27,7 @@ function *getScript(cloneOptions){
     //获取app信息end
     //若脚本已存在，直接使用本地脚本，若脚本不存在，则去master下载
     if(!fs.existsSync(scriptFilePath)){
-        fs.mkdirSync(scriptFilePath);
+        _.mkdir(scriptFilePath);
         var downFile = path.join(scriptFilePath,scriptName);
         var promise = new Promise(function (resolve, reject) {
             var out = request(demourl).pipe(fs.createWriteStream(downFile));
@@ -49,7 +50,7 @@ function *getScript(cloneOptions){
 function readFile(downFile,cloneOptions) {
     // downFile = "E:\\macaca\\aadownLoad.js";
     var scriptFile = cloneOptions.dir;
-    var modelFile = path.join(__dirname, '../../', '.script','scriptModel','model.test.js');
+    var modelFile = path.join(__dirname, '../../', 'common','scriptModel.test.js');
     var text = fs.readFileSync(modelFile);
     var script = fs.readFileSync(downFile);
     var modelText = iconv.decode(text, 'utf-8');
@@ -78,7 +79,7 @@ function *getAppInfo(cloneOptions){
     var dataForm = JSON.parse(dataString);
     var checkmd5 = dataForm.checkmd5;
     var appname ='';
-    var apppath = path.join(__dirname, '../../', '.app', checkmd5);
+    var apppath = path.join(__dirname, '../../','.temp', '.app', checkmd5);
     fs.readdirSync(apppath).forEach(function(file) {
         appname = file;
     });

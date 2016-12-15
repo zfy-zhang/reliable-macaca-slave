@@ -46,7 +46,6 @@
     "reliable-logger": "~1.0.6",
     "reliable-npm": "^0.2.1",
     "request": "^2.79.0",
-    "soap": "^0.18.0",
     "xutil": "~1.0.0",
     "zmq": "2.15.3"
   },

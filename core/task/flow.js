@@ -56,7 +56,7 @@ module.exports = function *(msg, options) {
   try {
 
     // Create the temp directory according to taskId
-    var tempDir = path.join(__dirname, '..', '..', '.temp', msg.taskId);
+    var tempDir = path.join(__dirname, '..', '..', '.temp','.task', msg.taskId);
 
     if (fs.existsSync(tempDir)) {
       _.rimraf(tempDir);
@@ -71,7 +71,7 @@ module.exports = function *(msg, options) {
         url:"",
         dir: tempDir,
         taskId:msg.taskId,
-        attachmentId:msg.attachmentId
+        attachmentId:'584f9e2b38f9dee8131a91b9'
     }
     logger.debug('Task %s start download app...', msg.taskId);
     var cloneOptions = _.merge(options,msg, cloneOptions);

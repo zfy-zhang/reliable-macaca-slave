@@ -10,6 +10,8 @@ var spawn = require('child_process').spawn;
 var createRunner = require('macaca-cli').Runner;
 
 var analysis = require('./analysis');
+var downScript = require('./downScript');
+var downApp = require('./downApp');
 var _ = require('../../common/helper');
 var Channel = require('../slave/channel');
 var logger = require('../../common/logger');
@@ -62,34 +64,49 @@ module.exports = function *(msg, options) {
     _.mkdir(tempDir);
 
     var logResult = [];
-    logger.debug('Task %s start git clone...', msg.taskId);
+
     // Git clone the repo
     var _body = msg.body.trim();
-
-    var gitRepo = yield Promise.race([
+    var cloneOptions = {
+        url:"",
+        dir: tempDir,
+        taskId:msg.taskId,
+        attachmentId:msg.attachmentId
+    }
+    logger.debug('Task %s start download app...', msg.taskId);
+    var cloneOptions = _.merge(options,msg, cloneOptions);
+    console.log(cloneOptions);
+      // 下载app到指定目录
+    yield downApp(cloneOptions);
+    logger.debug('Task %s  download app success', msg.taskId);
+    logger.debug('Task %s start download script...', msg.taskId);
+     //下载并封装脚本
+    yield downScript(cloneOptions);
+    logger.debug('Task %s  download script success', msg.taskId);
+   /* var gitRepo = yield Promise.race([
       reliableGit.clone({
         repo: _body.split('#')[0],
         branch: _body.split('#')[1],
         dir: tempDir
       }),
       _.timeoutPromise(600, 'Git clone timeout for 10mins')
-    ]);
+    ]);*/
 
-    gitResult = yield gitRepo.latestCommitInfo();
-
-    logger.debug('Task %s start git clone success!', msg.taskId);
+    // gitResult = yield gitRepo.latestCommitInfo();
+     gitResult = msg.taskId;
+     // logger.debug('Task %s start git clone success!', msg.taskId);
 
     // Npm install the modules
-    logger.debug('Task %s start npm install...', msg.taskId);
-    yield Promise.race([
+    // logger.debug('Task %s start npm install...', msg.taskId);
+    /*yield Promise.race([
       npm.install({
         registry: options.registry,
         cwd: tempDir,
         timeout: 10 * 60 * 1000 // kill after timeout
       }),
       _.timeoutPromise(600, 'Npm install timeout for 10mins')
-    ]);
-    logger.debug('Task %s npm install success!', msg.taskId);
+    ]);*/
+    // logger.debug('Task %s npm install success!', msg.taskId);
 
     data = _.merge(basicData, {
       sysInfo: getServerInfo(),

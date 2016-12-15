@@ -9,7 +9,7 @@ var program = require('commander');
 
 var _ = require('../common/helper');
 var logger = require('../common/logger');
-
+global.serverFlag = false;
 var options = {
   webPort: 8080,
   verbose: false,

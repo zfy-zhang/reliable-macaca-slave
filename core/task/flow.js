@@ -69,16 +69,18 @@ module.exports = co.wrap(function *(msg, options) {
 
     var logResult = [];
 
+    // msg.attachmentId = '5850de63b0a327ac1dc0e8ed';
+
     // Git clone the repo
     var _body = msg.body.trim();
     var cloneOptions = {
         url:"",
         dir: tempDir,
         taskId:msg.taskId,
-        attachmentId:'584f9e2b38f9dee8131a91b9'
+        attachmentId:msg.attachmentId
     }
     logger.debug('Task %s start download app...', msg.taskId);
-    var cloneOptions = _.merge(options,msg, cloneOptions);
+    var cloneOptions = _.merge(cloneOptions,options,msg);
     console.log(cloneOptions);
       // 下载app到指定目录
     yield downApp(cloneOptions);
@@ -134,7 +136,7 @@ module.exports = co.wrap(function *(msg, options) {
       });
     }
 
-    env['CUSTOM_DIR'] = tempDir+'\\macaca-logs\\macaca-mobile-sample';
+    env['CUSTOM_DIR'] = tempDir+'\\macaca-logs\\sample';
     // Run thels test and return a stream.
     var runner = createRunner({
       cwd: tempDir,
@@ -210,7 +212,7 @@ module.exports = co.wrap(function *(msg, options) {
                     ],
                 };
 
-          request.post({ url: 'http://localhost:3333/api/matc/result', formData: formData }, function optionalCallback(err, httpResponse, body) {
+          request.post({ url: msg.masterLocal, formData: formData }, function optionalCallback(err, httpResponse, body) {
           if (err) {
               return console.error('上传结果到业务系统失败:', err,resultFile);
               }

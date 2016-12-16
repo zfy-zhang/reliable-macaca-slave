@@ -75,7 +75,7 @@ module.exports = co.wrap(function *(msg, options) {
         url:"",
         dir: tempDir,
         taskId:msg.taskId,
-        attachmentId:'584f9e2b38f9dee8131a91b9'
+        attachmentId:msg.attachmentId//'584f9e2b38f9dee8131a91b9'
     }
     logger.debug('Task %s start download app...', msg.taskId);
     var cloneOptions = _.merge(options,msg, cloneOptions);

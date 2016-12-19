@@ -136,13 +136,13 @@ module.exports = co.wrap(function *(msg, options) {
       });
     }
 
-    env['CUSTOM_DIR'] = tempDir+'\\macaca-logs\\sample';
+    env['CUSTOM_DIR'] = path.join(tempDir,'macaca-logs','sample');
     // Run thels test and return a stream.
     var runner = createRunner({
       cwd: tempDir,
       directory: 'macaca-test',
       reporter:'macaca-simple-reportor',
-      output:tempDir+'\\macaca-logs\\log.html',
+      // output:tempDir+'\\macaca-logs\\log.html',
       env: env,
       colors: true,
       framework: 'mocha'
@@ -182,31 +182,33 @@ module.exports = co.wrap(function *(msg, options) {
     // Send the final result back with the analysis.
     runner.on('close', function() {
       // Change the status to available after the task.
-      var path = tempDir+'\\macaca-logs\\sample\\screenshot';
-      var logData = fs.readFileSync(tempDir+'\\macaca-logs\\sample\\result.log','utf-8');
-      var log = zip.folder("macaca-mobile-sample");
+      var screenShortDir = path.join(tempDir,'macaca-logs','sample','screenshot');
+      // var screenShortDir = tempDir+"/macaca-logs/sample/screenshot";
+      var resultLog = path.join(tempDir,'macaca-logs','sample','result.log');
+      var logData = fs.readFileSync(resultLog,'utf-8');
+      var log = zip.folder("sample");
       log.file("result.log", logData);
       //log.file("result.log", imgData, {base64: true});
 
-      var img = zip.folder("sample\\screenshot");
+      var img = zip.folder("sample/screenshot");
 
       var imgData;
-       fs.readdir(path, function(err, files){
+       fs.readdir(screenShortDir, function(err, files){
       	for(var i=0;i<files.length;i++){
       		console.log(files[i]);
-      		imgData = fs.readFileSync(path+'\\'+files[i],'base64');
+      		imgData = fs.readFileSync(path.join(screenShortDir,files[i]),'base64');
       		img.file(files[i], imgData, {base64: true});
       	}
       	zip
       	.generateNodeStream({type:'nodebuffer',streamFiles:true})
-      	.pipe(fs.createWriteStream(tempDir+"\\"+msg.taskId+".zip"))
+      	.pipe(fs.createWriteStream(path.join(tempDir,msg.taskId+".zip")))
       	.on('finish', function () {
       		// JSZip generates a readable stream with a "end" event,
       		// but is piped here in a writable stream which emits a "finish" event.
-          var resultFile=tempDir+'\\'+msg.taskId+'.zip';
+          var resultFile=path.join(tempDir,msg.taskId+'.zip');
           var formData = {
                         // my_field: 'my_value',
-                  my_buffer: new Buffer([1, 2, 3]),
+                  // my_buffer: new Buffer([1, 2, 3]),
                   attachments: [
                   fs.createReadStream(resultFile)
                     ],

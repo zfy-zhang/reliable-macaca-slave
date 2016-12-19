@@ -89,11 +89,11 @@ function *getAppInfo(cloneOptions){
 function writeFile(scriptFile,data){
     // 把中文转换成字节数组
     var arr = iconv.encode(data, 'utf-8');
-    scriptFile = scriptFile+"\\macaca-test";
+    scriptFile = path.join(scriptFile,"macaca-test");
     if (!fs.existsSync(scriptFile)) {
         fs.mkdirSync(scriptFile);
     }
-    scriptFile = scriptFile+"\\sample.test.js";
+    scriptFile = path.join(scriptFile,"sample.test.js");
     // appendFile，如果文件不存在，会自动创建新文件
     // 如果用writeFile，那么会删除旧文件，直接写新文件
     fs.writeFileSync(scriptFile, arr);

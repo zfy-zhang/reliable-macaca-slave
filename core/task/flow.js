@@ -60,7 +60,7 @@ module.exports = co.wrap(function *(msg, options) {
   try {
 
     // Create the temp directory according to taskId
-    var tempDir = path.join(__dirname, '..', '..', '.temp','.task', msg.taskId);
+    var tempDir = path.join(__dirname, '..', '..', '.temp','task', msg.taskId);
 
     if (fs.existsSync(tempDir)) {
       _.rimraf(tempDir);

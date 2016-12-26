@@ -146,7 +146,7 @@ function *runDevices() {
             'LD_LIBRARY_PATH=%s exec %s %s'
             , path.dirname(resources.lib.dest)
             , resources.bin.dest
-            , '-P ' + display + '@' + display + '/0 &'
+            , '-P ' + display + '@' + display + '/0 '
         ));
 
         yield client.shell(serialNumber, util.format(
@@ -415,21 +415,31 @@ function *runDevices() {
 
 function saveCommand(udid, cmd, data, touchStream) {
 
+    console.log(cmd);
+
     switch (cmd) {
         case 'click':
-            touchStream.write('r\n');
-            touchStream.write('d 0 ' + data.touchX + ' ' + data.touchY + '\n');
+            console.log('1-start');
+            // touchStream.write('r\n');
+            touchStream.write('d 0 ' + data.touchX + ' ' + data.touchY + ' 20\n');
             touchStream.write('c\n');
             touchStream.write('u 0\n');
             touchStream.write('c\n');
+            console.log('1-end');
+
             break;
         case 'swipe':
-            touchStream.write('d 0 ' + data.startX + ' ' + data.startY + ' 50\n');
+            // touchStream.write('r\n');
+            console.log('2-start');
+
+            touchStream.write('d 0 ' + data.startX + ' ' + data.startY + ' 20\n');
             touchStream.write('c\n');
-            touchStream.write('m 0 ' + data.endX + ' ' + data.endY + ' 50\n');
+            touchStream.write('m 0 ' + data.endX + ' ' + data.endY + ' 20\n');
             touchStream.write('c\n');
             touchStream.write('u 0\n');
             touchStream.write('c\n');
+            console.log('2-end');
+
             break;
         case 'back':
             client.shell(udid, 'input keyevent 4');

@@ -4,7 +4,6 @@ var pkg = require('../../package.json');
 var logger = require('../../common/logger');
 var cp = require('child_process');
 var os = require('os');
-var fs = require('fs');
 var Promise = require('bluebird')
 var adb = require('adbkit')
 var client = adb.createClient()

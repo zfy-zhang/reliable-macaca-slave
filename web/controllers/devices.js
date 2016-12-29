@@ -20,31 +20,31 @@ const _ = require('../../common/helper');
 
 var resources = {
     bin: {
-        dest: '/data/local/tmp/minicap'
-        , comm: 'minicap'
-        , mode: 0o755
-    }
-    , lib: {
-        dest: '/data/local/tmp/minicap.so'
-        , mode: 0o755
+        dest: '/data/local/tmp/minicap',
+        comm: 'minicap',
+        mode: 0o755
+    },
+    lib: {
+        dest: '/data/local/tmp/minicap.so',
+        mode: 0o755
     }
 }
 
 
-function *getDeviceList() {
+function* getDeviceList() {
     var arrDeviceList = [];
     var iosDevices = [];
     var strText, match;
     var platform = os.platform();
     yield client.listDevices()
-        .then(function (devices) {
-            return Promise.filter(devices, function (device) {
+        .then(function(devices) {
+            return Promise.filter(devices, function(device) {
                 return client.getProperties(device.id)
-                    .then(function (properties) {
+                    .then(function(properties) {
                         strText = cp.execSync('adb -s ' + device.id + ' shell wm size').toString();
                         var resolution;
 
-                        strText.replace(/Physical size: (.+?)\s+\r?\n/g, function (all, devicesName) {
+                        strText.replace(/Physical size: (.+?)\s+\r?\n/g, function(all, devicesName) {
                             resolution = devicesName.toString().trim();
                         });
 
@@ -60,29 +60,29 @@ function *getDeviceList() {
                             plantForm: 'Android',
                             status: '1'
                         });
-                    }).catch(function (err) {
+                    }).catch(function(err) {
                         arrDeviceList.push({
                             errorMessage: err.stack,
                             status: '4'
                         });
-                    }).then(function (property) {
+                    }).then(function(property) {
 
                     })
             })
         })
-        .then(function (property) {
+        .then(function(property) {
 
         })
 
     if (platform == 'darwin') {
         strText = cp.execSync('idevice_id -l').toString();
-        var arr = strText.toString('ascii').split('\n').map(function (val) {
+        var arr = strText.toString('ascii').split('\n').map(function(val) {
             return String(val);
         });
         for (var i = 0; i < arr.length; i++) {
             if (arr[i] != '') {
                 var devices = cp.execSync('ideviceinfo -u ' + arr[i] + '').toString();
-                var devicesArray = devices.toString('ascii').split('\n').filter(function (val) {
+                var devicesArray = devices.toString('ascii').split('\n').filter(function(val) {
                     return val.indexOf('UniqueDeviceID') == 0 ||
                         val.indexOf('DeviceClass') == 0 ||
                         val.indexOf('ProductVersion') == 0 ||
@@ -110,7 +110,8 @@ function *getDeviceList() {
                 var deviceSpecificData = specificData[i];
                 arrDeviceList.push({
                     serialNumber: deviceSpecificData[3].trim(),
-                    model: 'iPhone 6s', brand: deviceSpecificData[0].trim(),
+                    model: 'iPhone 6s',
+                    brand: deviceSpecificData[0].trim(),
                     releaseVersion: deviceSpecificData[2].trim(),
                     plantForm: 'ios',
                     screen: '750x1334',
@@ -123,7 +124,7 @@ function *getDeviceList() {
     return arrDeviceList;
 }
 
-function *controlDevices() {
+function* controlDevices() {
     switch (this.params.control) {
         case 'run':
             yield runDevices.call(this);
@@ -132,7 +133,7 @@ function *controlDevices() {
     }
 }
 
-function *runDevices() {
+function* runDevices() {
     console.log('start--');
     var deviceId = this.params.deviceId;
 
@@ -143,40 +144,34 @@ function *runDevices() {
     try {
         //start minicap
         console.log('start minicap', util.format(
-            'LD_LIBRARY_PATH=%s exec %s %s'
-            , path.dirname(resources.lib.dest)
-            , resources.bin.dest
-            , '-P ' + display + '@' + display + '/0 '
+            'LD_LIBRARY_PATH=%s exec %s %s', path.dirname(resources.lib.dest), resources.bin.dest, '-P ' + display + '@' + display + '/0 '
         ));
 
         yield client.shell(serialNumber, util.format(
-            'LD_LIBRARY_PATH=%s exec %s %s'
-            , path.dirname(resources.lib.dest)
-            , resources.bin.dest
-            , '-P ' + display + '@' + display + '/0 '
-        ), function () {
+            'LD_LIBRARY_PATH=%s exec %s %s', path.dirname(resources.lib.dest), resources.bin.dest, '-P ' + display + '@' + display + '/0 '
+        ), function() {
             console.log('start minicap successful');
         });
 
         console.log('start minitouch');
         // start minitouch
-        yield client.shell(serialNumber, '/data/local/tmp/minitouch', function(){
+        yield client.shell(serialNumber, '/data/local/tmp/minitouch', function() {
             console.log('start minitouch successful');
         });
 
 
         // cp.execSync('adb forward --remove-all');
-        yield client.listForwards(serialNumber, function (err, forwards) {
+        yield client.listForwards(serialNumber, function(err, forwards) {
             console.log(forwards);
-            return Promise.filter(forwards, function (forward) {
+            return Promise.filter(forwards, function(forward) {
                 console.log('remove', forward);
-                cp.execSync('adb forward --remove ' + forward.local);
+                cp.execSync('adb -s ' + serialNumber + ' forward --remove ' + forward.local);
             });
         });
 
         var serverPort = yield detect(9765);
         var server = http.createServer();
-        server.listen(serverPort, function () {
+        server.listen(serverPort, function() {
             console.log('----', serverPort);
         });
 
@@ -190,21 +185,21 @@ function *runDevices() {
             //minitouch adb forward
             var minitouchPort = yield detect(1111);
             console.log('minitouchPort', minitouchPort);
-            yield client.forward(serialNumber, 'tcp:' + minitouchPort, 'localabstract:minitouch');
+            yield client.forward(serialNumber, 'tcp:' + minitouchPort, 'localabstract:minitouch').delay(1000);
 
             //minicap adb forward
             var minicapPort = yield detect(1313);
             console.log('minicapPort', minicapPort);
-            yield client.forward(serialNumber, 'tcp:' + minicapPort, 'localabstract:minicap');
-
+            yield client.forward(serialNumber, 'tcp:' + minicapPort, 'localabstract:minicap').delay(1000);
+            console.log('delay');
             var touchStream = net.connect({
                 port: minitouchPort
             });
 
-            touchStream.on('close', function () {
+            touchStream.on('close', function() {
                 console.log('touch end--tcp', minitouchPort);
                 try {
-                    cp.execSync('adb forward --remove tcp:' + minitouchPort);
+                    cp.execSync('adb -s ' + serialNumber + ' forward --remove tcp:' + minitouchPort);
                 } catch (ex) {
                     console.log(ex);
                 }
@@ -214,15 +209,15 @@ function *runDevices() {
                 port: minicapPort
             });
 
-            stream.on('error', function () {
+            stream.on('error', function() {
                 console.error('Be sure to run `adb forward tcp:1313 localabstract:minicap`')
                 process.exit(1)
             });
 
-            stream.on('close', function () {
+            stream.on('close', function() {
                 console.log('minicap end--tcp', minicapPort);
                 try {
-                    cp.execSync('adb forward --remove tcp:' + minicapPort);
+                    cp.execSync('adb -s ' + serialNumber + ' forward --remove tcp:' + minicapPort);
                 } catch (ex) {
                     console.log(ex);
                 }
@@ -237,19 +232,20 @@ function *runDevices() {
             var frameBodyLength = 0
             var frameBody = new Buffer(0)
             var banner = {
-                version: 0
-                , length: 0
-                , pid: 0
-                , realWidth: 0
-                , realHeight: 0
-                , virtualWidth: 0
-                , virtualHeight: 0
-                , orientation: 0
-                , quirks: 0
+                version: 0,
+                length: 0,
+                pid: 0,
+                realWidth: 0,
+                realHeight: 0,
+                virtualWidth: 0,
+                virtualHeight: 0,
+                orientation: 0,
+                quirks: 0
             }
 
             function tryRead() {
-                for (var chunk; (chunk = stream.read());) {
+                for (var chunk;
+                    (chunk = stream.read());) {
                     // console.info('chunk(length=%d)', chunk.length)
                     for (var cursor = 0, len = chunk.length; cursor < len;) {
                         if (readBannerBytes < bannerLength) {
@@ -318,20 +314,17 @@ function *runDevices() {
                             if (readBannerBytes === bannerLength) {
                                 // console.log('banner', banner)
                             }
-                        }
-                        else if (readFrameBytes < 4) {
+                        } else if (readFrameBytes < 4) {
                             frameBodyLength += (chunk[cursor] << (readFrameBytes * 8)) >>> 0
                             cursor += 1
                             readFrameBytes += 1
-                            // console.info('headerbyte%d(val=%d)', readFrameBytes, frameBodyLength)
-                        }
-                        else {
+                                // console.info('headerbyte%d(val=%d)', readFrameBytes, frameBodyLength)
+                        } else {
                             if (len - cursor >= frameBodyLength) {
                                 // console.info('bodyfin(len=%d,cursor=%d)', frameBodyLength, cursor)
 
                                 frameBody = Buffer.concat([
-                                    frameBody
-                                    , chunk.slice(cursor, cursor + frameBodyLength)
+                                    frameBody, chunk.slice(cursor, cursor + frameBodyLength)
                                 ])
 
                                 // Sanity check for JPG header, only here for debugging purposes.
@@ -348,13 +341,11 @@ function *runDevices() {
                                 cursor += frameBodyLength
                                 frameBodyLength = readFrameBytes = 0
                                 frameBody = new Buffer(0)
-                            }
-                            else {
+                            } else {
                                 // console.info('body(len=%d)', len - cursor)
 
                                 frameBody = Buffer.concat([
-                                    frameBody
-                                    , chunk.slice(cursor, len)
+                                    frameBody, chunk.slice(cursor, len)
                                 ])
 
                                 frameBodyLength -= len - cursor
@@ -368,15 +359,12 @@ function *runDevices() {
 
             stream.on('readable', tryRead);
 
-            connection.on('message', function (message) {
+            connection.on('message', function(message) {
                 console.log('收到消息', message);
                 var message = message.utf8Data;
                 try {
                     message = JSON.parse(message);
-                }
-                catch (e) {
-                }
-                ;
+                } catch (e) {};
                 var type = message.type;
                 console.log('type', type);
                 switch (type) {
@@ -386,7 +374,7 @@ function *runDevices() {
                 }
 
             });
-            connection.on('close', function (reasonCode, description) {
+            connection.on('close', function(reasonCode, description) {
                 wsConnection = null;
                 console.info('Lost a client')
                 stream.end();
@@ -400,7 +388,7 @@ function *runDevices() {
 
         this.body = {
             success: true,
-            data: {webSocketPort: serverPort}
+            data: { webSocketPort: serverPort }
         };
 
     } catch (ex) {
@@ -454,15 +442,14 @@ function saveCommand(udid, cmd, data, touchStream) {
 
 }
 
-function *dispatch() {
+function* dispatch() {
     logger.debug('controller devices');
     if (this.params.method) {
         switch (this.params.method) {
             case 'control_devices':
                 yield controlDevices.call(this);
                 break;
-        }
-        ;
+        };
     } else {
         this.body = yield getDeviceList.call(this);
     }

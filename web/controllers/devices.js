@@ -16,6 +16,8 @@ var client = adb.createClient();
 var http = require('http');
 var WebSocketServer = require('websocket').server;
 const _ = require('../../common/helper');
+var HashMap = require('hashmap').HashMap;
+var map = new HashMap();
 
 
 var resources = {
@@ -129,9 +131,42 @@ function* controlDevices() {
         case 'run':
             yield runDevices.call(this);
             break;
+        case 'stop':
+            yield  stopDevices.call(this);
+            break;
 
     }
 }
+
+function *stopDevices(){
+
+    try{
+        console.log('start--');
+        var deviceId = this.params.deviceId;
+
+
+        const post = yield _.parse(this);
+        var display = post.display;
+        var serialNumber = post.serialNumber;
+        var wss = map.get(serialNumber);
+        wss.close();
+
+        this.body = {
+            success: true,
+            errorMsg: '',
+            data: null
+        };
+    }catch(ex){
+        console.log(ex);
+        this.body = {
+            success: false,
+            errorMsg: '释放手机失败',
+            data: null
+        };
+    }
+
+}
+
 
 function* runDevices() {
     console.log('start--');
@@ -170,6 +205,8 @@ function* runDevices() {
             httpServer: server,
             autoAcceptConnections: true
         });
+
+        map.set(serialNumber, server);
 
         wsServer.on('connect', co.wrap(function*(connection) {
 

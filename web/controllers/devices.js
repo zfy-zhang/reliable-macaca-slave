@@ -150,6 +150,7 @@ function *stopDevices(){
         var serialNumber = post.serialNumber;
         var wss = map.get(serialNumber);
         wss.close();
+        map.remove(serialNumber);
 
         this.body = {
             success: true,

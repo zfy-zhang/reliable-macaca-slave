@@ -16,6 +16,8 @@ var client = adb.createClient();
 var http = require('http');
 var WebSocketServer = require('websocket').server;
 const _ = require('../../common/helper');
+var HashMap = require('hashmap').HashMap;
+var map = new HashMap();
 
 
 var resources = {
@@ -37,14 +39,14 @@ function* getDeviceList() {
     var strText, match;
     var platform = os.platform();
     yield client.listDevices()
-        .then(function(devices) {
-            return Promise.filter(devices, function(device) {
+        .then(function (devices) {
+            return Promise.filter(devices, function (device) {
                 return client.getProperties(device.id)
-                    .then(function(properties) {
+                    .then(function (properties) {
                         strText = cp.execSync('adb -s ' + device.id + ' shell wm size').toString();
                         var resolution;
 
-                        strText.replace(/Physical size: (.+?)\s+\r?\n/g, function(all, devicesName) {
+                        strText.replace(/Physical size: (.+?)\s+\r?\n/g, function (all, devicesName) {
                             resolution = devicesName.toString().trim();
                         });
 
@@ -60,29 +62,29 @@ function* getDeviceList() {
                             plantForm: 'Android',
                             status: '1'
                         });
-                    }).catch(function(err) {
+                    }).catch(function (err) {
                         arrDeviceList.push({
                             errorMessage: err.stack,
                             status: '4'
                         });
-                    }).then(function(property) {
+                    }).then(function (property) {
 
                     })
             })
         })
-        .then(function(property) {
+        .then(function (property) {
 
         })
 
     if (platform == 'darwin') {
         strText = cp.execSync('idevice_id -l').toString();
-        var arr = strText.toString('ascii').split('\n').map(function(val) {
+        var arr = strText.toString('ascii').split('\n').map(function (val) {
             return String(val);
         });
         for (var i = 0; i < arr.length; i++) {
             if (arr[i] != '') {
                 var devices = cp.execSync('ideviceinfo -u ' + arr[i] + '').toString();
-                var devicesArray = devices.toString('ascii').split('\n').filter(function(val) {
+                var devicesArray = devices.toString('ascii').split('\n').filter(function (val) {
                     return val.indexOf('UniqueDeviceID') == 0 ||
                         val.indexOf('DeviceClass') == 0 ||
                         val.indexOf('ProductVersion') == 0 ||
@@ -129,9 +131,43 @@ function* controlDevices() {
         case 'run':
             yield runDevices.call(this);
             break;
+        case 'stop':
+            yield  stopDevices.call(this);
+            break;
 
     }
 }
+
+function *stopDevices(){
+
+    try{
+        console.log('start--');
+        var deviceId = this.params.deviceId;
+
+
+        const post = yield _.parse(this);
+        var display = post.display;
+        var serialNumber = post.serialNumber;
+        var wss = map.get(serialNumber);
+        wss.close();
+        map.remove(serialNumber);
+
+        this.body = {
+            success: true,
+            errorMsg: '',
+            data: null
+        };
+    }catch(ex){
+        console.log(ex);
+        this.body = {
+            success: false,
+            errorMsg: '释放手机失败',
+            data: null
+        };
+    }
+
+}
+
 
 function* runDevices() {
     console.log('start--');
@@ -149,29 +185,20 @@ function* runDevices() {
 
         yield client.shell(serialNumber, util.format(
             'LD_LIBRARY_PATH=%s exec %s %s', path.dirname(resources.lib.dest), resources.bin.dest, '-P ' + display + '@' + display + '/0 '
-        ), function() {
+        ), function () {
             console.log('start minicap successful');
         });
 
         console.log('start minitouch');
         // start minitouch
-        yield client.shell(serialNumber, '/data/local/tmp/minitouch', function() {
+        yield client.shell(serialNumber, '/data/local/tmp/minitouch', function () {
             console.log('start minitouch successful');
         });
 
 
-        // cp.execSync('adb forward --remove-all');
-        yield client.listForwards(serialNumber, function(err, forwards) {
-            console.log(forwards);
-            return Promise.filter(forwards, function(forward) {
-                console.log('remove', forward);
-                cp.execSync('adb -s ' + serialNumber + ' forward --remove ' + forward.local);
-            });
-        });
-
         var serverPort = yield detect(9765);
         var server = http.createServer();
-        server.listen(serverPort, function() {
+        server.listen(serverPort, function () {
             console.log('----', serverPort);
         });
 
@@ -180,215 +207,197 @@ function* runDevices() {
             autoAcceptConnections: true
         });
 
+        map.set(serialNumber, server);
+
         wsServer.on('connect', co.wrap(function*(connection) {
-
-            //minitouch adb forward
-            var minitouchPort = yield detect(1111);
-            console.log('minitouchPort', minitouchPort);
-            yield client.forward(serialNumber, 'tcp:' + minitouchPort, 'localabstract:minitouch').delay(1000);
-
-            //minicap adb forward
-            var minicapPort = yield detect(1313);
-            console.log('minicapPort', minicapPort);
-            yield client.forward(serialNumber, 'tcp:' + minicapPort, 'localabstract:minicap').delay(1000);
-            console.log('delay');
-            var touchStream = net.connect({
-                port: minitouchPort
-            });
-
-            touchStream.on('close', function() {
-                console.log('touch end--tcp', minitouchPort);
-                try {
-                    cp.execSync('adb -s ' + serialNumber + ' forward --remove tcp:' + minitouchPort);
-                } catch (ex) {
-                    console.log(ex);
-                }
-            });
-
-            var stream = net.connect({
-                port: minicapPort
-            });
-
-            stream.on('error', function() {
-                console.error('Be sure to run `adb forward tcp:1313 localabstract:minicap`')
-                process.exit(1)
-            });
-
-            stream.on('close', function() {
-                console.log('minicap end--tcp', minicapPort);
-                try {
-                    cp.execSync('adb -s ' + serialNumber + ' forward --remove tcp:' + minicapPort);
-                } catch (ex) {
-                    console.log(ex);
-                }
-            });
-
 
             var wsConnection = connection;
 
-            var readBannerBytes = 0
-            var bannerLength = 2
-            var readFrameBytes = 0
-            var frameBodyLength = 0
-            var frameBody = new Buffer(0)
-            var banner = {
-                version: 0,
-                length: 0,
-                pid: 0,
-                realWidth: 0,
-                realHeight: 0,
-                virtualWidth: 0,
-                virtualHeight: 0,
-                orientation: 0,
-                quirks: 0
-            }
-
-            function tryRead() {
-                for (var chunk;
-                    (chunk = stream.read());) {
-                    // console.info('chunk(length=%d)', chunk.length)
-                    for (var cursor = 0, len = chunk.length; cursor < len;) {
-                        if (readBannerBytes < bannerLength) {
-                            switch (readBannerBytes) {
-                                case 0:
-                                    // version
-                                    banner.version = chunk[cursor]
-                                    break
-                                case 1:
-                                    // length
-                                    banner.length = bannerLength = chunk[cursor]
-                                    break
-                                case 2:
-                                case 3:
-                                case 4:
-                                case 5:
-                                    // pid
-                                    banner.pid +=
-                                        (chunk[cursor] << ((readBannerBytes - 2) * 8)) >>> 0
-                                    break
-                                case 6:
-                                case 7:
-                                case 8:
-                                case 9:
-                                    // real width
-                                    banner.realWidth +=
-                                        (chunk[cursor] << ((readBannerBytes - 6) * 8)) >>> 0
-                                    break
-                                case 10:
-                                case 11:
-                                case 12:
-                                case 13:
-                                    // real height
-                                    banner.realHeight +=
-                                        (chunk[cursor] << ((readBannerBytes - 10) * 8)) >>> 0
-                                    break
-                                case 14:
-                                case 15:
-                                case 16:
-                                case 17:
-                                    // virtual width
-                                    banner.virtualWidth +=
-                                        (chunk[cursor] << ((readBannerBytes - 14) * 8)) >>> 0
-                                    break
-                                case 18:
-                                case 19:
-                                case 20:
-                                case 21:
-                                    // virtual height
-                                    banner.virtualHeight +=
-                                        (chunk[cursor] << ((readBannerBytes - 18) * 8)) >>> 0
-                                    break
-                                case 22:
-                                    // orientation
-                                    banner.orientation += chunk[cursor] * 90
-                                    break
-                                case 23:
-                                    // quirks
-                                    banner.quirks = chunk[cursor]
-                                    break
+            client.openLocal(serialNumber, 'localabstract:minitouch')
+                .timeout(10000)
+                .then(function (touchStream) {
+                    console.log('minitouch start');
+                    return client.openLocal(serialNumber, 'localabstract:minicap')
+                        .timeout(10000)
+                        .then(function (stream) {
+                            console.log('minicap start')
+                            var readBannerBytes = 0
+                            var bannerLength = 2
+                            var readFrameBytes = 0
+                            var frameBodyLength = 0
+                            var frameBody = new Buffer(0)
+                            var banner = {
+                                version: 0
+                                , length: 0
+                                , pid: 0
+                                , realWidth: 0
+                                , realHeight: 0
+                                , virtualWidth: 0
+                                , virtualHeight: 0
+                                , orientation: 0
+                                , quirks: 0
                             }
 
-                            cursor += 1
-                            readBannerBytes += 1
+                            function tryRead() {
+                                for (var chunk; (chunk = stream.read());) {
+                                    for (var cursor = 0, len = chunk.length; cursor < len;) {
+                                        if (readBannerBytes < bannerLength) {
+                                            switch (readBannerBytes) {
+                                                case 0:
+                                                    // version
+                                                    banner.version = chunk[cursor]
+                                                    break
+                                                case 1:
+                                                    // length
+                                                    banner.length = bannerLength = chunk[cursor]
+                                                    break
+                                                case 2:
+                                                case 3:
+                                                case 4:
+                                                case 5:
+                                                    // pid
+                                                    banner.pid +=
+                                                        (chunk[cursor] << ((readBannerBytes - 2) * 8)) >>> 0
+                                                    break
+                                                case 6:
+                                                case 7:
+                                                case 8:
+                                                case 9:
+                                                    // real width
+                                                    banner.realWidth +=
+                                                        (chunk[cursor] << ((readBannerBytes - 6) * 8)) >>> 0
+                                                    break
+                                                case 10:
+                                                case 11:
+                                                case 12:
+                                                case 13:
+                                                    // real height
+                                                    banner.realHeight +=
+                                                        (chunk[cursor] << ((readBannerBytes - 10) * 8)) >>> 0
+                                                    break
+                                                case 14:
+                                                case 15:
+                                                case 16:
+                                                case 17:
+                                                    // virtual width
+                                                    banner.virtualWidth +=
+                                                        (chunk[cursor] << ((readBannerBytes - 14) * 8)) >>> 0
 
-                            if (readBannerBytes === bannerLength) {
-                                // console.log('banner', banner)
+                                                    break
+                                                case 18:
+                                                case 19:
+                                                case 20:
+                                                case 21:
+                                                    // virtual height
+                                                    banner.virtualHeight +=
+                                                        (chunk[cursor] << ((readBannerBytes - 18) * 8)) >>> 0
+
+                                                    break
+                                                case 22:
+                                                    // orientation
+                                                    banner.orientation += chunk[cursor] * 90
+                                                    break
+                                                case 23:
+                                                    // quirks
+                                                    banner.quirks = chunk[cursor]
+                                                    break
+                                            }
+
+                                            cursor += 1
+                                            readBannerBytes += 1
+
+                                            if (readBannerBytes === bannerLength) {
+                                                console.log('banner', banner)
+                                            }
+                                        }
+                                        else if (readFrameBytes < 4) {
+                                            frameBodyLength += (chunk[cursor] << (readFrameBytes * 8)) >>> 0
+                                            cursor += 1
+                                            readFrameBytes += 1
+                                            // console.info('headerbyte%d(val=%d)', readFrameBytes, frameBodyLength)
+                                        }
+                                        else {
+                                            if (len - cursor >= frameBodyLength) {
+                                                // console.info('bodyfin(len=%d,cursor=%d)', frameBodyLength, cursor)
+
+                                                frameBody = Buffer.concat([
+                                                    frameBody
+                                                    , chunk.slice(cursor, cursor + frameBodyLength)
+                                                ])
+
+                                                // Sanity check for JPG header, only here for debugging purposes.
+                                                if (frameBody[0] !== 0xFF || frameBody[1] !== 0xD8) {
+                                                    console.error(
+                                                        'Frame body does not start with JPG header', frameBody)
+                                                    process.exit(1)
+                                                }
+
+                                                connection.send(frameBody, {
+                                                    binary: true
+                                                })
+
+                                                cursor += frameBodyLength
+                                                frameBodyLength = readFrameBytes = 0
+                                                frameBody = new Buffer(0)
+                                            }
+                                            else {
+                                                // console.info('body(len=%d)', len - cursor)
+
+                                                frameBody = Buffer.concat([
+                                                    frameBody
+                                                    , chunk.slice(cursor, len)
+                                                ])
+
+                                                frameBodyLength -= len - cursor
+                                                readFrameBytes += len - cursor
+                                                cursor = len
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        } else if (readFrameBytes < 4) {
-                            frameBodyLength += (chunk[cursor] << (readFrameBytes * 8)) >>> 0
-                            cursor += 1
-                            readFrameBytes += 1
-                                // console.info('headerbyte%d(val=%d)', readFrameBytes, frameBodyLength)
-                        } else {
-                            if (len - cursor >= frameBodyLength) {
-                                // console.info('bodyfin(len=%d,cursor=%d)', frameBodyLength, cursor)
 
-                                frameBody = Buffer.concat([
-                                    frameBody, chunk.slice(cursor, cursor + frameBodyLength)
-                                ])
+                            stream.on('readable', tryRead);
 
-                                // Sanity check for JPG header, only here for debugging purposes.
-                                if (frameBody[0] !== 0xFF || frameBody[1] !== 0xD8) {
-                                    console.error(
-                                        'Frame body does not start with JPG header', frameBody)
-                                    process.exit(1)
+                            connection.on('message', function (message) {
+                                console.log('收到消息', message);
+                                var message = message.utf8Data;
+                                try {
+                                    message = JSON.parse(message);
+                                }
+                                catch (e) {
+                                }
+                                ;
+                                var type = message.type;
+                                console.log('type', type);
+                                switch (type) {
+                                    case 'command':
+                                        saveCommand(serialNumber, message.data.cmd, message.data.data, touchStream);
+                                        break;
                                 }
 
-                                connection.send(frameBody, {
-                                    binary: true
-                                })
-
-                                cursor += frameBodyLength
-                                frameBodyLength = readFrameBytes = 0
-                                frameBody = new Buffer(0)
-                            } else {
-                                // console.info('body(len=%d)', len - cursor)
-
-                                frameBody = Buffer.concat([
-                                    frameBody, chunk.slice(cursor, len)
-                                ])
-
-                                frameBodyLength -= len - cursor
-                                readFrameBytes += len - cursor
-                                cursor = len
-                            }
-                        }
-                    }
-                }
-            }
-
-            stream.on('readable', tryRead);
-
-            connection.on('message', function(message) {
-                console.log('收到消息', message);
-                var message = message.utf8Data;
-                try {
-                    message = JSON.parse(message);
-                } catch (e) {};
-                var type = message.type;
-                console.log('type', type);
-                switch (type) {
-                    case 'command':
-                        saveCommand(serialNumber, message.data.cmd, message.data.data, touchStream);
-                        break;
-                }
-
-            });
-            connection.on('close', function(reasonCode, description) {
-                wsConnection = null;
-                console.info('Lost a client')
-                stream.end();
-                touchStream.end();
-            });
+                            });
+                            connection.on('close', function (reasonCode, description) {
+                                wsConnection = null;
+                                console.info('Lost a client')
+                                stream.end();
+                                touchStream.end();
+                                // client.exit;
+                            });
+                            // return stream
+                        })
+                        .catch(function (err) {
+                            console.log(err);
+                        })
+                });
 
         }));
-
 
         console.log('run success,webSocketPort:', serverPort);
 
         this.body = {
             success: true,
-            data: { webSocketPort: serverPort }
+            data: {webSocketPort: serverPort}
         };
 
     } catch (ex) {
@@ -449,7 +458,8 @@ function* dispatch() {
             case 'control_devices':
                 yield controlDevices.call(this);
                 break;
-        };
+        }
+        ;
     } else {
         this.body = yield getDeviceList.call(this);
     }

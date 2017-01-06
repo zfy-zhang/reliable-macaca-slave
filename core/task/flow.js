@@ -60,7 +60,7 @@ module.exports = co.wrap(function *(msg, options) {
   try {
 
     // Create the temp directory according to taskId
-    var tempDir = path.join(__dirname, '..', '..', '.temp','.task', msg.taskId);
+    var tempDir = path.join(__dirname, '..', '..', '.temp','task', msg.taskId);
 
     if (fs.existsSync(tempDir)) {
       _.rimraf(tempDir);
@@ -79,40 +79,44 @@ module.exports = co.wrap(function *(msg, options) {
         taskId:msg.taskId,
         attachmentId:msg.attachmentId
     }
-    logger.debug('Task %s start download app...', msg.taskId);
-    var cloneOptions = _.merge(cloneOptions,options,msg);
-    console.log(cloneOptions);
-      // 下载app到指定目录
-    yield downApp(cloneOptions);
-    logger.debug('Task %s  download app success', msg.taskId);
-    logger.debug('Task %s start download script...', msg.taskId);
-     //下载并封装脚本
-    yield downScript(cloneOptions);
-    logger.debug('Task %s  download script success', msg.taskId);
-   /* var gitRepo = yield Promise.race([
-      reliableGit.clone({
-        repo: _body.split('#')[0],
-        branch: _body.split('#')[1],
-        dir: tempDir
-      }),
-      _.timeoutPromise(600, 'Git clone timeout for 10mins')
-    ]);*/
+      //如果存在序列号，则是由业务系统发起的任务
+    if(msg.serialNumber){
+        logger.debug('Task %s start download app...', msg.taskId);
+        var cloneOptions = _.merge(cloneOptions,options,msg);
+        console.log(cloneOptions);
+        // 下载app到指定目录
+        yield downApp(cloneOptions);
+        logger.debug('Task %s  download app success', msg.taskId);
+        logger.debug('Task %s start download script...', msg.taskId);
+        //下载并封装脚本
+        yield downScript(cloneOptions);
+        logger.debug('Task %s  download script success', msg.taskId);
+        gitResult = msg.taskId;
+    }else {
+       logger.debug('Task %s start git clone ...', msg.taskId);
+       var gitRepo = yield Promise.race([
+       reliableGit.clone({
+       repo: _body.split('#')[0],
+       branch: _body.split('#')[1],
+       dir: tempDir
+       }),
+       _.timeoutPromise(600, 'Git clone timeout for 10mins')
+       ]);
+       gitResult = yield gitRepo.latestCommitInfo();
 
-    // gitResult = yield gitRepo.latestCommitInfo();
-     gitResult = msg.taskId;
-     // logger.debug('Task %s start git clone success!', msg.taskId);
-
-    // Npm install the modules
-    // logger.debug('Task %s start npm install...', msg.taskId);
-    /*yield Promise.race([
-      npm.install({
-        registry: options.registry,
-        cwd: tempDir,
-        timeout: 10 * 60 * 1000 // kill after timeout
-      }),
-      _.timeoutPromise(600, 'Npm install timeout for 10mins')
-    ]);*/
-    // logger.debug('Task %s npm install success!', msg.taskId);
+       logger.debug('Task %s git clone success!', msg.taskId);
+       // Npm install the modules
+       /*logger.debug('Task %s start npm install...', msg.taskId);
+       yield Promise.race([
+         npm.install({
+         registry: options.registry,
+         cwd: tempDir,
+         timeout: 10 * 60 * 1000 // kill after timeout
+         }),
+         _.timeoutPromise(600, 'Npm install timeout for 10mins')
+         ]);
+       logger.debug('Task %s npm install success!', msg.taskId);*/
+    }
 
     data = _.merge(basicData, {
       sysInfo: getServerInfo(),
@@ -181,48 +185,51 @@ module.exports = co.wrap(function *(msg, options) {
 
     // Send the final result back with the analysis.
     runner.on('close', function() {
-      // Change the status to available after the task.
-      var screenShortDir = path.join(tempDir,'macaca-logs','sample','screenshot');
-      // var screenShortDir = tempDir+"/macaca-logs/sample/screenshot";
-      var resultLog = path.join(tempDir,'macaca-logs','sample','result.log');
-      var logData = fs.readFileSync(resultLog,'utf-8');
-      var log = zip.folder("sample");
-      log.file("result.log", logData);
-      //log.file("result.log", imgData, {base64: true});
+        //如果存在序列号，则是由业务系统发起的任务
+        if(msg.serialNumber){
+            // Change the status to available after the task.
+            var screenShortDir = path.join(tempDir,'macaca-logs','sample','screenshot');
+            // var screenShortDir = tempDir+"/macaca-logs/sample/screenshot";
+            var resultLog = path.join(tempDir,'macaca-logs','sample','result.log');
+            var logData = fs.readFileSync(resultLog,'utf-8');
+            var log = zip.folder("sample");
+            log.file("result.log", logData);
+            //log.file("result.log", imgData, {base64: true});
 
-      var img = zip.folder("sample/screenshot");
+            var img = zip.folder("sample/screenshot");
 
-      var imgData;
-       fs.readdir(screenShortDir, function(err, files){
-      	for(var i=0;i<files.length;i++){
-      		console.log(files[i]);
-      		imgData = fs.readFileSync(path.join(screenShortDir,files[i]),'base64');
-      		img.file(files[i], imgData, {base64: true});
-      	}
-      	zip
-      	.generateNodeStream({type:'nodebuffer',streamFiles:true})
-      	.pipe(fs.createWriteStream(path.join(tempDir,msg.taskId+".zip")))
-      	.on('finish', function () {
-      		// JSZip generates a readable stream with a "end" event,
-      		// but is piped here in a writable stream which emits a "finish" event.
-          var resultFile=path.join(tempDir,msg.taskId+'.zip');
-          var formData = {
-                        // my_field: 'my_value',
-                  // my_buffer: new Buffer([1, 2, 3]),
-                  attachments: [
-                  fs.createReadStream(resultFile)
-                    ],
-                };
+            var imgData;
+            fs.readdir(screenShortDir, function(err, files){
+                for(var i=0;i<files.length;i++){
+                    console.log(files[i]);
+                    imgData = fs.readFileSync(path.join(screenShortDir,files[i]),'base64');
+                    img.file(files[i], imgData, {base64: true});
+                }
+                zip
+                    .generateNodeStream({type:'nodebuffer',streamFiles:true})
+                    .pipe(fs.createWriteStream(path.join(tempDir,msg.taskId+".zip")))
+                    .on('finish', function () {
+                        // JSZip generates a readable stream with a "end" event,
+                        // but is piped here in a writable stream which emits a "finish" event.
+                        var resultFile=path.join(tempDir,msg.taskId+'.zip');
+                        var formData = {
+                            // my_field: 'my_value',
+                            // my_buffer: new Buffer([1, 2, 3]),
+                            attachments: [
+                                fs.createReadStream(resultFile)
+                            ],
+                        };
 
-          request.post({ url: msg.masterLocal, formData: formData }, function optionalCallback(err, httpResponse, body) {
-          if (err) {
-              return console.error('上传结果到业务系统失败:', err,resultFile);
-              }
-             console.log('上传结果到业务系统成功:', resultFile);
-          });
-      		console.log("out.zip written.");
-      	});
-      });
+                        request.post({ url: msg.masterLocal, formData: formData }, function optionalCallback(err, httpResponse, body) {
+                            if (err) {
+                                return console.error('上传结果到业务系统失败:', err,resultFile);
+                            }
+                            console.log('上传结果到业务系统成功:', resultFile);
+                        });
+                        console.log("out.zip written.");
+                    });
+            });
+        }
       global.__task_status = status.AVAILABLE;
 
       var execInfo = analysis(finalResult);

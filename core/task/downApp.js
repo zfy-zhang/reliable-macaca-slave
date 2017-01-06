@@ -17,7 +17,7 @@ function  *getApp(cloneOptions){
     var dataForm = JSON.parse(data);
     var checkmd5 = dataForm.checkmd5;
     var appName = dataForm.fileName;
-    var appFilePath = path.join(__dirname, '../../','.temp', '.app',checkmd5);
+    var appFilePath = path.join(__dirname, '../../','.temp', 'app',checkmd5);
     if(!fs.existsSync(appFilePath)){
         _.mkdir(appFilePath);
         var downFile = path.join(appFilePath,appName);

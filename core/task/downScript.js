@@ -19,7 +19,7 @@ function *getScript(cloneOptions){
     var dataForm = JSON.parse(data);
     var checkmd5 = dataForm.checkmd5;
     var scriptName = dataForm.fileName;
-    var scriptFilePath = path.join(__dirname, '../../', '.temp','script',checkmd5);
+    var scriptFilePath = path.join(__dirname, '../../', '.temp','.script',checkmd5);
 
     //获取app信息start
     var appInfo = yield getAppInfo(cloneOptions);
@@ -79,7 +79,7 @@ function *getAppInfo(cloneOptions){
     var dataForm = JSON.parse(dataString);
     var checkmd5 = dataForm.checkmd5;
     var appname ='';
-    var apppath = path.join(__dirname, '../../','.temp', 'app', checkmd5);
+    var apppath = path.join(__dirname, '../../','.temp', '.app', checkmd5);
     fs.readdirSync(apppath).forEach(function(file) {
         appname = file;
     });

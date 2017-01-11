@@ -61,31 +61,35 @@ function readFile(downFile,cloneOptions) {
         var script = fs.readFileSync(downFile);
         var modelText = iconv.decode(text, 'utf-8');
         var scriptText = iconv.decode(script, 'utf-8');
-        //图片截图命名，根据步骤名进行更改。
-	      var caseStep = scriptText.split('it(\'');
-    	  var scriptTextData = '';
-    	  var CaseName = '';
-    	  for (var i = 1; i < caseStep.length; i++) {
-            var flag = 1;
-            CaseName = caseStep[i].substring(0, caseStep[i].indexOf('\''));
-            console.log(CaseName);
-            var stepLine = caseStep[i].split('\n');
-            console.log(stepLine.length);
-            for (var j = 0; j < stepLine.length; j++) {
-                if (j == 0) {
-                    stepLine[j] = 'it(\'' + stepLine[j];
-                }
-                var line = stepLine[j].indexOf('saveScreenshot');
-
-                if (line >= 0) {
-                    var saveScreenshots = stepLine[j].substring(line + 15, stepLine[j].indexOf(')'));
-                    stepLine[j] = stepLine[j].replace(saveScreenshots, '\'' + CaseName + flag + '\'');
-                    flag++;
-                }
-                scriptTextData += stepLine[j] + '\n';
+	
+	var caseStep = scriptText.split('it(\'');
+    	var scriptTextData = '';
+    	var CaseName = '';
+	 for (var i = 1; i < caseStep.length; i++) {
+        var flag = 1;
+        CaseName = caseStep[i].substring(0, caseStep[i].indexOf('\''));
+        console.log(CaseName);
+        var stepLine = caseStep[i].split('\n');
+        console.log(stepLine.length);
+        for (var j = 0; j < stepLine.length; j++) {
+            if (j == 0) {
+                stepLine[j] = 'it(\'' + stepLine[j];
             }
-            console.log(scriptTextData);
+            var line = stepLine[j].indexOf('saveScreenshot');
+
+            if (line >= 0) {
+                var saveScreenshots = stepLine[j].substring(line + 15, stepLine[j].indexOf(')'));
+                stepLine[j] = stepLine[j].replace(saveScreenshots, '\'' + CaseName + flag + '\'');
+                flag++;
+            }
+            scriptTextData += stepLine[j] + '\n';
         }
+        console.log(scriptTextData);
+    }
+	
+	
+	
+	
         var data = modelText.replace('#script-replace#', scriptText);
         //替换platform，app ,udid信息
         if(cloneOptions.runiOS){

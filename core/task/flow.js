@@ -184,7 +184,6 @@ module.exports = co.wrap(function *(msg, options) {
       // Change the status to available after the task.
       var screenShortDir = path.join(tempDir,'macaca-logs','sample','screenshot');
       // var screenShortDir = tempDir+"/macaca-logs/sample/screenshot";
-      //测试结果文件由原来的.log文件变更为.json文件
       var resultLog = path.join(tempDir,'macaca-logs','sample','result.json');
       var logData = fs.readFileSync(resultLog,'utf-8');
       var log = zip.folder("sample");

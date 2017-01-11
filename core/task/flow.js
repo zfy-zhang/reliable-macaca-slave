@@ -184,7 +184,7 @@ module.exports = co.wrap(function *(msg, options) {
       // Change the status to available after the task.
       var screenShortDir = path.join(tempDir,'macaca-logs','sample','screenshot');
       // var screenShortDir = tempDir+"/macaca-logs/sample/screenshot";
-      var resultLog = path.join(tempDir,'macaca-logs','sample','result.json');
+      var resultLog = path.join(tempDir,'macaca-logs','sample','result.log');
       var logData = fs.readFileSync(resultLog,'utf-8');
       var log = zip.folder("sample");
       log.file("result.log", logData);

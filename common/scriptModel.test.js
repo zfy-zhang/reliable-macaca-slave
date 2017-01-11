@@ -13,7 +13,7 @@ var iOSOpts = {
   platformName: 'iOS',
   udid: process.env.udid ||'#device-ios-udid#',
   //bundleId: 'xudafeng.ios-app-bootstrap',
-  app: path.join(__dirname, '../../../', 'app', '#appname-ios-replace#')
+  app: path.join(__dirname, '../../../', '.app', '#appname-ios-replace#')
 };
 
 var androidOpts = {
@@ -24,7 +24,7 @@ var androidOpts = {
   //activity: '.activity.SplashActivity',
   //package: 'com.github.android_app_bootstrap',
   //activity: 'com.github.android_app_bootstrap.activity.WelcomeActivity',
-  app: path.join(__dirname, '../../../', 'app', '#appname-android-replace#')
+  app: path.join(__dirname, '../../../', '.app', '#appname-android-replace#')
 };
 
 var wd = require('webdriver-client')(_.merge({}, platform === 'ios' ? iOSOpts : androidOpts));

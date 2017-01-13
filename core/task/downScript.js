@@ -14,7 +14,7 @@ var _ = require('../../common/helper');
 function *getScript(cloneOptions){
     //-----------------------------下载并封装脚本start-------------------------------------
     try{
-        var demourl = cloneOptions.master+'/getAttachments/getScript/'+cloneOptions.attachmentId;
+        var demourl = cloneOptions.master+'/api/matc/getAttachments/getScript/'+cloneOptions.attachmentId;
         var resultData =yield REQUST.get({ url: demourl+'?checkmd5=true'});
         var data = resultData.body;
         var dataForm = JSON.parse(data);
@@ -118,7 +118,7 @@ function readFile(downFile,cloneOptions) {
 //获取app信息
 function *getAppInfo(cloneOptions){
     try{
-        var demourl = cloneOptions.master+'/getAttachments/getApp/'+cloneOptions.attachmentId;
+        var demourl = cloneOptions.master+'/api/matc/getAttachments/getApp/'+cloneOptions.attachmentId;
 
         var resultData = yield REQUST.get({ url: demourl+'?checkmd5=true'});
         var dataString = resultData.body;

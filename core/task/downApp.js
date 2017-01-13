@@ -10,7 +10,7 @@ var request = require('request');
 var REQUST = require("co-request");
 function  *getApp(cloneOptions){
     try{
-        var demourl = cloneOptions.master+'/getAttachments/getApp/'+cloneOptions.attachmentId;
+        var demourl = cloneOptions.master+'/api/matc/getAttachments/getApp/'+cloneOptions.attachmentId;
         var resultData =yield REQUST.get({ url: demourl+'?checkmd5=true'});
 
         var data = resultData.body;

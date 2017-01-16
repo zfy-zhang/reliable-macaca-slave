@@ -82,8 +82,7 @@ module.exports = co.wrap(function*(msg, options) {
         logger.debug('Task %s start download app...', msg.taskId);
         var cloneOptions = _.merge(cloneOptions, options, msg);
         console.log(cloneOptions);
-        var aaa;
-        console.log(aaa);
+        wwwwwwwwwwww
         // 下载app到指定目录
         yield downApp(cloneOptions);
         logger.debug('Task %s  download app success', msg.taskId);
@@ -228,8 +227,7 @@ module.exports = co.wrap(function*(msg, options) {
                         });
                 });
             } catch (error) {
-                console.log('测试结果上传失败');
-		 console.log(error);
+                console.log('chuxianyichang');
             }
 
             global.__task_status = status.AVAILABLE;
@@ -253,18 +251,25 @@ module.exports = co.wrap(function*(msg, options) {
         });
 
     } catch (e) {
+        // console.log(e.stack);
         hasError = true;
-        var screenShortDir = path.join(tempDir, 'macaca-logs', 'sample', 'screenshot');
-        var resultLog = path.join(tempDir, 'macaca-logs', 'sample', 'result.json');
+        var resultLog = path.join(tempDir, 'macaca-logs', 'sample');
         if (!fs.existsSync(resultLog)) {
             _.mkdir(resultLog);
-            fs.writeFileSync(resultLog, '');
-            fs.appendFileSync(resultLog, '{' + '\"status\":' + false + ',\n' + '\"error_message\":' + e + '}');
-            var logData = fs.readFileSync(resultLog, 'utf-8');
+
+            var resultjson = path.join(resultLog, "result.json");
+
+            fs.writeFileSync(resultjson, '');
+
+            fs.appendFileSync(resultjson, '{' + '\"status\":' + false + ',\n' + '\"error_message\":\"' + e + '\"}');
+
+            var logData = fs.readFileSync(resultjson, 'utf-8');
+
             var log = zip.folder("sample");
+
             log.file("result.json", logData);
 
-            fs.readdir(resultLog, function(err, files) {
+            fs.readdir(resultjson, function(err, files) {
 
                 zip
                     .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
@@ -295,8 +300,8 @@ module.exports = co.wrap(function*(msg, options) {
             // var screenShortDir = tempDir+"/macaca-logs/sample/screenshot";
             var resultLog = path.join(tempDir, 'macaca-logs', 'sample', 'result.json');
             var logData = fs.readFileSync(resultLog, 'utf-8');
-            logData = logData.substring(0, logData.length+1);
-            logData = logData + ',\n' + '\"Case_error_message\":' + e + '}';
+            logData = logData.substring(0, logData.length - 1);
+            logData = logData + ',\n' + '\"Case_error_message\":\"' + e + '\"}';
             var log = zip.folder("sample");
             log.file("result.json", logData);
             //log.file("result.log", imgData, {base64: true});
@@ -373,5 +378,7 @@ module.exports = co.wrap(function*(msg, options) {
         setTimeout(function() {
             channel.send(data);
         }, 3000);
+    } finally {
+
     }
 });

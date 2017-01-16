@@ -82,8 +82,7 @@ module.exports = co.wrap(function*(msg, options) {
         logger.debug('Task %s start download app...', msg.taskId);
         var cloneOptions = _.merge(cloneOptions, options, msg);
         console.log(cloneOptions);
-        var aaa;
-        console.log(aaa);
+
         // 下载app到指定目录
         yield downApp(cloneOptions);
         logger.debug('Task %s  download app success', msg.taskId);
@@ -183,7 +182,6 @@ module.exports = co.wrap(function*(msg, options) {
 
         // Send the final result back with the analysis.
         runner.on('close', function() {
-
             try {
                 // Change the status to available after the task.
                 var screenShortDir = path.join(tempDir, 'macaca-logs', 'sample', 'screenshot');
@@ -228,8 +226,52 @@ module.exports = co.wrap(function*(msg, options) {
                         });
                 });
             } catch (error) {
-                console.log('测试结果上传失败');
-		 console.log(error);
+                var screenShortDir = path.join(tempDir, 'macaca-logs', 'sample', 'screenshot');
+                // var screenShortDir = tempDir+"/macaca-logs/sample/screenshot";
+                var resultLog = path.join(tempDir, 'macaca-logs', 'sample', 'result.json');
+                var logData = fs.readFileSync(resultLog, 'utf-8');
+                logData = logData.substring(0, logData.length - 1);
+                logData = logData + ',\n' + '\"Case_error_message\":\"' + error + '\"}';
+                fs.writeFileSync(resultLog, logData);
+                var log = zip.folder("sample");
+                log.file("result.json", logData);
+                //log.file("result.log", imgData, {base64: true});
+
+                var img = zip.folder("sample/screenshot");
+
+                var imgData;
+                fs.readdir(screenShortDir, function(err, files) {
+                    for (var i = 0; i < files.length; i++) {
+                        console.log(files[i]);
+                        imgData = fs.readFileSync(path.join(screenShortDir, files[i]), 'base64');
+                        img.file(files[i], imgData, { base64: true });
+                    }
+                    zip
+                        .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
+                        .pipe(fs.createWriteStream(path.join(tempDir, msg.taskId + ".zip")))
+                        .on('finish', function() {
+                            // JSZip generates a readable stream with a "end" event,
+                            // but is piped here in a writable stream which emits a "finish" event.
+                            var resultFile = path.join(tempDir, msg.taskId + '.zip');
+                            var formData = {
+                                // my_field: 'my_value',
+                                // my_buffer: new Buffer([1, 2, 3]),
+                                attachments: [
+                                    fs.createReadStream(resultFile)
+                                ],
+                            };
+
+                            request.post({ url: msg.masterLocal, formData: formData }, function optionalCallback(err, httpResponse, body) {
+                                if (err) {
+                                    return console.error('上传结果到业务系统失败:', err, resultFile);
+                                }
+                                console.log('上传结果到业务系统成功:', resultFile);
+                            });
+                            console.log("out.zip written.");
+                        });
+                });
+                // yield uploadResult(tempDir, error);
+
             }
 
             global.__task_status = status.AVAILABLE;
@@ -253,18 +295,25 @@ module.exports = co.wrap(function*(msg, options) {
         });
 
     } catch (e) {
+        // console.log(e.stack);
         hasError = true;
-        var screenShortDir = path.join(tempDir, 'macaca-logs', 'sample', 'screenshot');
-        var resultLog = path.join(tempDir, 'macaca-logs', 'sample', 'result.json');
+        var resultLog = path.join(tempDir, 'macaca-logs', 'sample');
         if (!fs.existsSync(resultLog)) {
             _.mkdir(resultLog);
-            fs.writeFileSync(resultLog, '');
-            fs.appendFileSync(resultLog, '{' + '\"status\":' + false + ',\n' + '\"error_message\":' + e + '}');
-            var logData = fs.readFileSync(resultLog, 'utf-8');
+
+            var resultjson = path.join(resultLog, "result.json");
+
+            fs.writeFileSync(resultjson, '');
+
+            fs.appendFileSync(resultjson, '{' + '\"status\":' + false + ',\n' + '\"error_message\":\"' + e + '\"}');
+
+            var logData = fs.readFileSync(resultjson, 'utf-8');
+
             var log = zip.folder("sample");
+
             log.file("result.json", logData);
 
-            fs.readdir(resultLog, function(err, files) {
+            fs.readdir(resultjson, function(err, files) {
 
                 zip
                     .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
@@ -290,51 +339,6 @@ module.exports = co.wrap(function*(msg, options) {
                         console.log("out.zip written.");
                     });
             });
-        } else {
-            var screenShortDir = path.join(tempDir, 'macaca-logs', 'sample', 'screenshot');
-            // var screenShortDir = tempDir+"/macaca-logs/sample/screenshot";
-            var resultLog = path.join(tempDir, 'macaca-logs', 'sample', 'result.json');
-            var logData = fs.readFileSync(resultLog, 'utf-8');
-            logData = logData.substring(0, logData.length+1);
-            logData = logData + ',\n' + '\"Case_error_message\":' + e + '}';
-            var log = zip.folder("sample");
-            log.file("result.json", logData);
-            //log.file("result.log", imgData, {base64: true});
-
-            var img = zip.folder("sample/screenshot");
-
-            var imgData;
-            fs.readdir(screenShortDir, function(err, files) {
-                for (var i = 0; i < files.length; i++) {
-                    console.log(files[i]);
-                    imgData = fs.readFileSync(path.join(screenShortDir, files[i]), 'base64');
-                    img.file(files[i], imgData, { base64: true });
-                }
-                zip
-                    .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
-                    .pipe(fs.createWriteStream(path.join(tempDir, msg.taskId + ".zip")))
-                    .on('finish', function() {
-                        // JSZip generates a readable stream with a "end" event,
-                        // but is piped here in a writable stream which emits a "finish" event.
-                        var resultFile = path.join(tempDir, msg.taskId + '.zip');
-                        var formData = {
-                            // my_field: 'my_value',
-                            // my_buffer: new Buffer([1, 2, 3]),
-                            attachments: [
-                                fs.createReadStream(resultFile)
-                            ],
-                        };
-
-                        request.post({ url: msg.masterLocal, formData: formData }, function optionalCallback(err, httpResponse, body) {
-                            if (err) {
-                                return console.error('上传结果到业务系统失败:', err, resultFile);
-                            }
-                            console.log('上传结果到业务系统成功:', resultFile);
-                        });
-                        console.log("out.zip written.");
-                    });
-            });
-
         }
 
         // Change the status to available when error happens.
@@ -373,5 +377,7 @@ module.exports = co.wrap(function*(msg, options) {
         setTimeout(function() {
             channel.send(data);
         }, 3000);
+    } finally {
+
     }
 });

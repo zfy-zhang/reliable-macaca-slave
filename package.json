@@ -52,6 +52,7 @@
     "reliable-npm": "^0.2.1",
     "request": "^2.79.0",
     "websocket": "^1.0.23",
+    "xctest-client": "^1.0.29",
     "xutil": "~1.0.0",
     "zmq": "2.15.3"
   },

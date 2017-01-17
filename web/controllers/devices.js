@@ -22,7 +22,7 @@ var xcMap = new HashMap();
 
 const XCTest = require('xctest-client');
 
-
+var iosDevicesList = require('ios-device-list');
 
 var resources = {
     bin: {
@@ -35,6 +35,19 @@ var resources = {
         mode: 0o755
     }
 }
+
+
+var iosDevicesScreen = new Map();
+iosDevicesScreen.set('iPhone 4', '640x960');
+iosDevicesScreen.set('iPhone 4S', '640x960');
+iosDevicesScreen.set('iPhone 5', '640x1136');
+iosDevicesScreen.set('iPhone 5c', '640x1136');
+iosDevicesScreen.set('iPhone 5s', '640x1136');
+iosDevicesScreen.set('iPhone 6', '750x1334');
+iosDevicesScreen.set('iPhone 6 Plus', '1080x1920');
+iosDevicesScreen.set('iPhone 7', '750x1334');
+iosDevicesScreen.set('iPhone 7 Plus', '1080x1920');
+
 
 
 function* getDeviceList() {
@@ -93,7 +106,8 @@ function* getDeviceList() {
                         return val.indexOf('UniqueDeviceID') == 0 ||
                             val.indexOf('DeviceClass') == 0 ||
                             val.indexOf('ProductVersion') == 0 ||
-                            val.indexOf('DeviceName') == 0;
+                            val.indexOf('DeviceName') == 0 ||
+                            val.indexOf('ProductType') == 0;
                     });
                     iosDevices.push(devicesArray);
                 }
@@ -115,13 +129,15 @@ function* getDeviceList() {
                 var screen = '';
                 for (var i = 0; i < specificData.length; i++) {
                     var deviceSpecificData = specificData[i];
+					var devices = iosDevicesList.devices();
+					var gen = iosDevicesList.generationByIdentifier(deviceSpecificData[2].trim());
                     arrDeviceList.push({
-                        serialNumber: deviceSpecificData[3].trim(),
-                        model: 'iPhone 6s',
+                        serialNumber: deviceSpecificData[4].trim(),
+						model: gen,
                         brand: deviceSpecificData[0].trim(),
-                        releaseVersion: deviceSpecificData[2].trim(),
+                        releaseVersion: deviceSpecificData[3].trim(),
                         plantForm: 'ios',
-                        screen: '750x1334',
+                        screen: iosDevicesScreen.get(gen),
                         status: '1'
                     });
                 }

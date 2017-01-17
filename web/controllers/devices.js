@@ -20,6 +20,9 @@ var HashMap = require('hashmap').HashMap;
 var map = new HashMap();
 
 
+var iosDevicesList = require('ios-device-list');
+
+
 var resources = {
     bin: {
         dest: '/data/local/tmp/minicap',
@@ -33,103 +36,120 @@ var resources = {
 }
 
 
+var iosDevicesScreen = new Map();
+iosDevicesScreen.set('iPhone 4', '640x960');
+iosDevicesScreen.set('iPhone 4S', '640x960');
+iosDevicesScreen.set('iPhone 5', '640x1136');
+iosDevicesScreen.set('iPhone 5c', '640x1136');
+iosDevicesScreen.set('iPhone 5s', '640x1136');
+iosDevicesScreen.set('iPhone 6', '750x1334');
+iosDevicesScreen.set('iPhone 6 Plus', '1080x1920');
+iosDevicesScreen.set('iPhone 7', '750x1334');
+iosDevicesScreen.set('iPhone 7 Plus', '1080x1920');
+
+
+
 function* getDeviceList() {
-    try{
-        var arrDeviceList = [];
-        var iosDevices = [];
-        var strText, match;
-        var platform = os.platform();
-        yield client.listDevices()
-            .then(function (devices) {
-                return Promise.filter(devices, function (device) {
-                    return client.getProperties(device.id)
-                        .then(function (properties) {
-                            strText = cp.execSync('adb -s ' + device.id + ' shell wm size').toString();
-                            var resolution;
+    var arrDeviceList = [];
+    var iosDevices = [];
+    var strText, match;
+    var platform = os.platform();
+    yield client.listDevices()
+        .then(function(devices) {
+            return Promise.filter(devices, function(device) {
+                return client.getProperties(device.id)
+                    .then(function(properties) {
+                        strText = cp.execSync('adb -s ' + device.id + ' shell wm size').toString();
+                        var resolution;
 
-                            strText.replace(/Physical size: (.+?)\s+\r?\n/g, function (all, devicesName) {
-                                resolution = devicesName.toString().trim();
-                            });
+                        strText.replace(/Physical size: (.+?)\s+\r?\n/g, function(all, devicesName) {
+                            resolution = devicesName.toString().trim();
+                        });
 
-                            arrDeviceList.push({
-                                serialNumber: device.id,
-                                model: properties['ro.product.model'],
-                                brand: properties['ro.product.brand'],
-                                releaseVersion: properties['ro.build.version.release'],
-                                sdkVersion: properties['ro.build.version.sdk'],
-                                abi: properties['ro.product.cpu.abi'],
-                                product: properties['ro.product.name'],
-                                screen: resolution,
-                                plantForm: 'Android',
-                                status: '1'
-                            });
-                        }).catch(function (err) {
-                            arrDeviceList.push({
-                                errorMessage: err.stack,
-                                status: '4'
-                            });
-                        }).then(function (property) {
+                        arrDeviceList.push({
+                            serialNumber: device.id,
+                            model: properties['ro.product.model'],
+                            brand: properties['ro.product.brand'],
+                            releaseVersion: properties['ro.build.version.release'],
+                            sdkVersion: properties['ro.build.version.sdk'],
+                            abi: properties['ro.product.cpu.abi'],
+                            product: properties['ro.product.name'],
+                            screen: resolution,
+                            plantForm: 'Android',
+                            status: '1'
+                        });
+                    }).catch(function(err) {
+                        arrDeviceList.push({
+                            errorMessage: err.stack,
+                            status: '4'
+                        });
+                    }).then(function(property) {
 
-                        })
-                })
+                    })
             })
-            .then(function (property) {
+        })
+        .then(function(property) {
 
-            })
+        })
 
-        if (platform == 'darwin') {
-            strText = cp.execSync('idevice_id -l').toString();
-            var arr = strText.toString('ascii').split('\n').map(function (val) {
-                return String(val);
-            });
-            for (var i = 0; i < arr.length; i++) {
-                if (arr[i] != '') {
-                    var devices = cp.execSync('ideviceinfo -u ' + arr[i] + '').toString();
-                    var devicesArray = devices.toString('ascii').split('\n').filter(function (val) {
-                        return val.indexOf('UniqueDeviceID') == 0 ||
-                            val.indexOf('DeviceClass') == 0 ||
-                            val.indexOf('ProductVersion') == 0 ||
-                            val.indexOf('DeviceName') == 0;
-                    });
-                    iosDevices.push(devicesArray);
-                }
-            }
-            var list = [];
-            var specificData = [];
-            if (iosDevices != '') {
-                for (var i = 0; i < iosDevices.length; i++) {
-                    var ss = iosDevices[i];
-                    var screen = '';
-                    for (var j = 0; j < ss.length; j++) {
-                        var devicesArray = ss[j].toString('ascii').split(',');
-                        var sss = devicesArray.toString('ascii').split(':');
-                        list.push(sss[1]);
-                    }
-                    specificData.push(list);
-                    list = [];
-                }
-                var screen = '';
-                for (var i = 0; i < specificData.length; i++) {
-                    var deviceSpecificData = specificData[i];
-                    arrDeviceList.push({
-                        serialNumber: deviceSpecificData[3].trim(),
-                        model: 'iPhone 6s',
-                        brand: deviceSpecificData[0].trim(),
-                        releaseVersion: deviceSpecificData[2].trim(),
-                        plantForm: 'ios',
-                        screen: '750x1334',
-                        status: '1'
-                    });
-                }
+    if (platform == 'darwin') {
+        strText = cp.execSync('idevice_id -l').toString();
+        var arr = strText.toString('ascii').split('\n').map(function(val) {
+            return String(val);
+        });
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] != '') {
+                var devices = cp.execSync('ideviceinfo -u ' + arr[i] + '').toString();
+                var devicesArray = devices.toString('ascii').split('\n').filter(function(val) {
+                    return val.indexOf('UniqueDeviceID') == 0 ||
+                        val.indexOf('DeviceClass') == 0 ||
+                        val.indexOf('ProductVersion') == 0 ||
+                        val.indexOf('DeviceName') == 0 ||
+                        val.indexOf('ProductType') == 0;
+                });
+                iosDevices.push(devicesArray);
             }
         }
-        client.exit;
-        return arrDeviceList;
-    }catch (e){
-        console.log(e);
-        return null;
+        var list = [];
+        var specificData = [];
+        if (iosDevices != '') {
+            for (var i = 0; i < iosDevices.length; i++) {
+                var ss = iosDevices[i];
+                var screen = '';
+                for (var j = 0; j < ss.length; j++) {
+                    var devicesArray = ss[j].toString('ascii').split(',');
+                    var sss = devicesArray.toString('ascii').split(':');
+                    list.push(sss[1]);
+                }
+                specificData.push(list);
+                list = [];
+            }
+            var screen = '';
+            for (var i = 0; i < specificData.length; i++) {
+                console.log(specificData[i]);
+                var deviceSpecificData = specificData[i];
+                console.log('deviceSpecificData[4].trim()' + deviceSpecificData[2].trim());
+                //get deviceModel
+                var devices = iosDevicesList.devices();
+                var gen = iosDevicesList.generationByIdentifier(deviceSpecificData[2].trim());
+                //var gen = iosDevicesList.generationByIdentifier('iPhone3,3');
+                console.log(gen);
+                arrDeviceList.push({
+                    serialNumber: deviceSpecificData[4].trim(),
+                    //model: 'iPhone 6s',
+                    model: gen,
+                    brand: deviceSpecificData[0].trim(),
+                    releaseVersion: deviceSpecificData[3].trim(),
+                    plantForm: 'ios',
+                    screen: iosDevicesScreen.get(gen),
+                    status: '1'
+                });
+            }
+            console.log(arrDeviceList);
+        }
     }
-
+    client.exit;
+    return arrDeviceList;
 }
 
 function* controlDevices() {
@@ -138,15 +158,15 @@ function* controlDevices() {
             yield runDevices.call(this);
             break;
         case 'stop':
-            yield  stopDevices.call(this);
+            yield stopDevices.call(this);
             break;
 
     }
 }
 
-function *stopDevices(){
+function* stopDevices() {
 
-    try{
+    try {
         console.log('start--');
         var deviceId = this.params.deviceId;
 
@@ -163,7 +183,7 @@ function *stopDevices(){
             errorMsg: '',
             data: null
         };
-    }catch(ex){
+    } catch (ex) {
         console.log(ex);
         this.body = {
             success: false,
@@ -191,20 +211,20 @@ function* runDevices() {
 
         yield client.shell(serialNumber, util.format(
             'LD_LIBRARY_PATH=%s exec %s %s', path.dirname(resources.lib.dest), resources.bin.dest, '-P ' + display + '@' + display + '/0 '
-        ), function () {
+        ), function() {
             console.log('start minicap successful');
         });
 
         console.log('start minitouch');
         // start minitouch
-        yield client.shell(serialNumber, '/data/local/tmp/minitouch', function () {
+        yield client.shell(serialNumber, '/data/local/tmp/minitouch', function() {
             console.log('start minitouch successful');
         });
 
 
         var serverPort = yield detect(9765);
         var server = http.createServer();
-        server.listen(serverPort, function () {
+        server.listen(serverPort, function() {
             console.log('----', serverPort);
         });
 
@@ -221,11 +241,11 @@ function* runDevices() {
 
             client.openLocal(serialNumber, 'localabstract:minitouch')
                 .timeout(10000)
-                .then(function (touchStream) {
+                .then(function(touchStream) {
                     console.log('minitouch start');
                     return client.openLocal(serialNumber, 'localabstract:minicap')
                         .timeout(10000)
-                        .then(function (stream) {
+                        .then(function(stream) {
                             console.log('minicap start')
                             var readBannerBytes = 0
                             var bannerLength = 2
@@ -233,19 +253,20 @@ function* runDevices() {
                             var frameBodyLength = 0
                             var frameBody = new Buffer(0)
                             var banner = {
-                                version: 0
-                                , length: 0
-                                , pid: 0
-                                , realWidth: 0
-                                , realHeight: 0
-                                , virtualWidth: 0
-                                , virtualHeight: 0
-                                , orientation: 0
-                                , quirks: 0
+                                version: 0,
+                                length: 0,
+                                pid: 0,
+                                realWidth: 0,
+                                realHeight: 0,
+                                virtualWidth: 0,
+                                virtualHeight: 0,
+                                orientation: 0,
+                                quirks: 0
                             }
 
                             function tryRead() {
-                                for (var chunk; (chunk = stream.read());) {
+                                for (var chunk;
+                                    (chunk = stream.read());) {
                                     for (var cursor = 0, len = chunk.length; cursor < len;) {
                                         if (readBannerBytes < bannerLength) {
                                             switch (readBannerBytes) {
@@ -315,20 +336,17 @@ function* runDevices() {
                                             if (readBannerBytes === bannerLength) {
                                                 console.log('banner', banner)
                                             }
-                                        }
-                                        else if (readFrameBytes < 4) {
+                                        } else if (readFrameBytes < 4) {
                                             frameBodyLength += (chunk[cursor] << (readFrameBytes * 8)) >>> 0
                                             cursor += 1
                                             readFrameBytes += 1
-                                            // console.info('headerbyte%d(val=%d)', readFrameBytes, frameBodyLength)
-                                        }
-                                        else {
+                                                // console.info('headerbyte%d(val=%d)', readFrameBytes, frameBodyLength)
+                                        } else {
                                             if (len - cursor >= frameBodyLength) {
                                                 // console.info('bodyfin(len=%d,cursor=%d)', frameBodyLength, cursor)
 
                                                 frameBody = Buffer.concat([
-                                                    frameBody
-                                                    , chunk.slice(cursor, cursor + frameBodyLength)
+                                                    frameBody, chunk.slice(cursor, cursor + frameBodyLength)
                                                 ])
 
                                                 // Sanity check for JPG header, only here for debugging purposes.
@@ -345,13 +363,11 @@ function* runDevices() {
                                                 cursor += frameBodyLength
                                                 frameBodyLength = readFrameBytes = 0
                                                 frameBody = new Buffer(0)
-                                            }
-                                            else {
+                                            } else {
                                                 // console.info('body(len=%d)', len - cursor)
 
                                                 frameBody = Buffer.concat([
-                                                    frameBody
-                                                    , chunk.slice(cursor, len)
+                                                    frameBody, chunk.slice(cursor, len)
                                                 ])
 
                                                 frameBodyLength -= len - cursor
@@ -365,15 +381,12 @@ function* runDevices() {
 
                             stream.on('readable', tryRead);
 
-                            connection.on('message', function (message) {
+                            connection.on('message', function(message) {
                                 console.log('收到消息', message);
                                 var message = message.utf8Data;
                                 try {
                                     message = JSON.parse(message);
-                                }
-                                catch (e) {
-                                }
-                                ;
+                                } catch (e) {};
                                 var type = message.type;
                                 console.log('type', type);
                                 switch (type) {
@@ -383,7 +396,7 @@ function* runDevices() {
                                 }
 
                             });
-                            connection.on('close', function (reasonCode, description) {
+                            connection.on('close', function(reasonCode, description) {
                                 wsConnection = null;
                                 console.info('Lost a client')
                                 stream.end();
@@ -392,7 +405,7 @@ function* runDevices() {
                             });
                             // return stream
                         })
-                        .catch(function (err) {
+                        .catch(function(err) {
                             console.log(err);
                         })
                 });
@@ -403,7 +416,7 @@ function* runDevices() {
 
         this.body = {
             success: true,
-            data: {webSocketPort: serverPort}
+            data: { webSocketPort: serverPort }
         };
 
     } catch (ex) {
@@ -464,8 +477,7 @@ function* dispatch() {
             case 'control_devices':
                 yield controlDevices.call(this);
                 break;
-        }
-        ;
+        };
     } else {
         this.body = yield getDeviceList.call(this);
     }

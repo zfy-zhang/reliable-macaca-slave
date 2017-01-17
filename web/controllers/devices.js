@@ -45,6 +45,8 @@ iosDevicesScreen.set('iPhone 5c', '640x1136');
 iosDevicesScreen.set('iPhone 5s', '640x1136');
 iosDevicesScreen.set('iPhone 6', '750x1334');
 iosDevicesScreen.set('iPhone 6 Plus', '1080x1920');
+iosDevicesScreen.set('iPhone 6s', '750x1334');
+iosDevicesScreen.set('iPhone 6s Plus', '1080x1920');
 iosDevicesScreen.set('iPhone 7', '750x1334');
 iosDevicesScreen.set('iPhone 7 Plus', '1080x1920');
 

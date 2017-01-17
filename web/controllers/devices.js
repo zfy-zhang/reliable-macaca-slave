@@ -254,6 +254,12 @@ function* runDevices() {
                     wsConnection = null;
                 });
             });
+
+            this.body = {
+                success: true,
+                data: {webSocketPort: serverPort}
+            };
+
         } else {
 
             //start minicap
@@ -540,18 +546,15 @@ function saveCommandForIOS(xctest,wsConnection,sessionId,cmd, data) {
         switch (cmd) {
             case 'click':
                 try {
-                    var result = yield xctest.sendCommand(`/session/${sessionId}/tap/null`, 'post',
+                    yield xctest.sendCommand(`/session/${sessionId}/tap/null`, 'post',
                         {"x": data.touchX, "y": data.touchY});
                 } catch (ex) {
                     console.log(ex);
                 }
-
                 break;
             case 'swipe':
                 try {
-                    console.log(`/session/${sessionId}/dragfromtoforduration`);
-
-                    var result = yield xctest.sendCommand(`/session/${sessionId}/dragfromtoforduration`, 'post',
+                    yield xctest.sendCommand(`/session/${sessionId}/dragfromtoforduration`, 'post',
                         {
                             "fromX": data.startX,
                             "fromY": data.startY,
@@ -559,17 +562,13 @@ function saveCommandForIOS(xctest,wsConnection,sessionId,cmd, data) {
                             "toY": data.endY,
                             "duration": 0.5
                         });
-                    console.log('result', result);
 
                 } catch (ex) {
                     console.log(ex);
                 }
-
                 break;
             case 'mobileAppInfo':
-
                 try {
-                    // console.log(`http://${xctest.proxyHost}:${xctest.proxyPort}/screenshot`);
                     const screenshot = yield _.request(`http://${xctest.proxyHost}:${xctest.proxyPort}/screenshot`, 'get', {});
                     const base64Data = JSON.parse(screenshot).value;
                     // console.log('base64Data',base64Data);
@@ -578,8 +577,11 @@ function saveCommandForIOS(xctest,wsConnection,sessionId,cmd, data) {
                     });
                 } catch (ex) {
                     console.log(ex);
-
                 }
+                break;
+
+            case 'home':
+                yield xctest.sendCommand(`/homescreen`, 'post');
                 break;
 
         }

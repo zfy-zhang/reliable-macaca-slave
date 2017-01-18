@@ -280,24 +280,6 @@ function* runDevices() {
 
         } else {
 
-            //start minicap
-            console.log('start minicap', util.format(
-                'LD_LIBRARY_PATH=%s exec %s %s', path.dirname(resources.lib.dest), resources.bin.dest, '-P ' + display + '@' + display + '/0 '
-            ));
-
-            yield client.shell(serialNumber, util.format(
-                'LD_LIBRARY_PATH=%s exec %s %s', path.dirname(resources.lib.dest), resources.bin.dest, '-P ' + display + '@' + display + '/0 '
-            ), function () {
-                console.log('start minicap successful');
-            });
-
-            console.log('start minitouch');
-            // start minitouch
-            yield client.shell(serialNumber, '/data/local/tmp/minitouch', function () {
-                console.log('start minitouch successful');
-            });
-
-
             var serverPort = yield detect(9765);
             var server = http.createServer();
             server.listen(serverPort, function () {

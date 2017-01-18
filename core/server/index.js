@@ -8,7 +8,6 @@ var detect = require('detect-port');
 
 var cron = require('./cron');
 var installMiniCapAndTouch = require('./installMiniCapAndTouch');
-
 var router = require('./router');
 var _ = require('../../common/helper');
 var logger = require('../../common/logger');

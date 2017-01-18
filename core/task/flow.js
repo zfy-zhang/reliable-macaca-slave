@@ -189,7 +189,7 @@ module.exports = co.wrap(function*(msg, options) {
                 var resultLog = path.join(tempDir, 'macaca-logs', 'sample', 'result.json');
                 var logData = fs.readFileSync(resultLog, 'utf-8');
                 var log = zip.folder("sample");
-                log.file("result.log", logData);
+                log.file("result.json", logData);
                 //log.file("result.log", imgData, {base64: true});
 
                 var img = zip.folder("sample/screenshot");

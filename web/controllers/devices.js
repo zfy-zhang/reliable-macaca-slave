@@ -51,7 +51,6 @@ iosDevicesScreen.set('iPhone 7', '750x1334');
 iosDevicesScreen.set('iPhone 7 Plus', '1080x1920');
 
 
-
 function* getDeviceList() {
     try {
         var arrDeviceList = [];
@@ -131,11 +130,11 @@ function* getDeviceList() {
                 var screen = '';
                 for (var i = 0; i < specificData.length; i++) {
                     var deviceSpecificData = specificData[i];
-					var devices = iosDevicesList.devices();
-					var gen = iosDevicesList.generationByIdentifier(deviceSpecificData[2].trim());
+                    var devices = iosDevicesList.devices();
+                    var gen = iosDevicesList.generationByIdentifier(deviceSpecificData[2].trim());
                     arrDeviceList.push({
                         serialNumber: deviceSpecificData[4].trim(),
-						model: gen,
+                        model: gen,
                         brand: deviceSpecificData[0].trim(),
                         releaseVersion: deviceSpecificData[3].trim(),
                         plantForm: 'ios',
@@ -177,11 +176,14 @@ function *stopDevices() {
         var display = post.display;
         var serialNumber = post.serialNumber;
         var wss = map.get(serialNumber);
-        wss.close();
-        map.remove(serialNumber);
+        if (wss) {
+            wss.close();
+            map.remove(serialNumber);
+        }
+
 
         var xcTest = xcMap.get(serialNumber);
-        if(xcTest){
+        if (xcTest) {
             xcTest.stop();
             xcMap.remove(serialNumber);
         }
@@ -246,7 +248,7 @@ function* runDevices() {
             var wsConnection;
 
             map.set(serialNumber, server);
-            xcMap.set(serialNumber,xctest);
+            xcMap.set(serialNumber, xctest);
 
             wsServer.on('connect', function (connection) {
                 wsConnection = connection;
@@ -260,10 +262,10 @@ function* runDevices() {
                     var type = message.type;
                     switch (type) {
                         case 'command':
-                            saveCommandForIOS(xctest,wsConnection,sessionId,message.data.cmd, message.data.data);
+                            saveCommandForIOS(xctest, wsConnection, sessionId, message.data.cmd, message.data.data);
                             break;
                         case 'mobileAppInfo':
-                            saveCommandForIOS(xctest,wsConnection,sessionId,'mobileAppInfo');
+                            saveCommandForIOS(xctest, wsConnection, sessionId, 'mobileAppInfo');
                             break;
                     }
 
@@ -539,7 +541,7 @@ function saveCommand(udid, cmd, data, touchStream) {
 }
 
 
-function saveCommandForIOS(xctest,wsConnection,sessionId,cmd, data) {
+function saveCommandForIOS(xctest, wsConnection, sessionId, cmd, data) {
 
     co(function*() {
 
@@ -572,7 +574,7 @@ function saveCommandForIOS(xctest,wsConnection,sessionId,cmd, data) {
                     const screenshot = yield _.request(`http://${xctest.proxyHost}:${xctest.proxyPort}/screenshot`, 'get', {});
                     const base64Data = JSON.parse(screenshot).value;
                     // console.log('base64Data',base64Data);
-                    sendWsMessage(wsConnection,'mobileAppInfo', {
+                    sendWsMessage(wsConnection, 'mobileAppInfo', {
                         screenshot: base64Data
                     });
                 } catch (ex) {
@@ -589,7 +591,7 @@ function saveCommandForIOS(xctest,wsConnection,sessionId,cmd, data) {
     });
 }
 
-function sendWsMessage(wsConnection,type, data) {
+function sendWsMessage(wsConnection, type, data) {
     if (wsConnection) {
         var message = {
             type: type,

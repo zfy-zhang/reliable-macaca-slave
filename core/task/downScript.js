@@ -96,7 +96,7 @@ function readFile(downFile,cloneOptions) {
 
 
 
-        var data = modelText.replace('#script-replace#', scriptText);
+        var data = modelText.replace('#script-replace#', scriptTextData);
         //替换platform，app ,udid信息
         if(cloneOptions.runiOS){
             data = data.replace('#platform-replace#', 'ios');

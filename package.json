@@ -56,6 +56,7 @@
     "xctest-client": "^1.0.29",
     "xlogger": "^1.0.6",
     "xutil": "~1.0.0",
+    "webdriveragent":"https://github.com/CodeToSurvive1/webdriveragent.git",
     "zmq": "2.15.3"
   },
   "optionalDependencies": {

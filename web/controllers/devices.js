@@ -9,6 +9,7 @@ var detect = require('detect-port');
 var util = require('util');
 var net = require('net');
 var path = require('path');
+const UIAutomator = require('uiautomator-client');
 var os = require('os');
 var Promise = require('bluebird');
 var adb = require('adbkit');
@@ -17,12 +18,17 @@ var http = require('http');
 var WebSocketServer = require('websocket').server;
 const _ = require('../../common/helper');
 var HashMap = require('hashmap').HashMap;
+const ADB = require('macaca-adb');
+const XCTest = require('xctest-client');
+var iosDevicesList = require('ios-device-list');
+var xml2map = require('xml2map');
+
+
 var map = new HashMap();
 var xcMap = new HashMap();
+var adbMap = new HashMap();
+var uiautomatorMap = new HashMap();
 
-const XCTest = require('xctest-client');
-
-var iosDevicesList = require('ios-device-list');
 
 var resources = {
     bin: {
@@ -159,18 +165,18 @@ function* controlDevices() {
             yield runDevices.call(this);
             break;
         case 'stop':
-            yield  stopDevices.call(this);
+            yield stopDevices.call(this);
             break;
-
+        case 'record':
+            yield recordDevices.call(this);
+            break;
     }
 }
 
 function *stopDevices() {
 
     try {
-        console.log('start--');
         var deviceId = this.params.deviceId;
-
 
         const post = yield _.parse(this);
         var display = post.display;
@@ -181,11 +187,20 @@ function *stopDevices() {
             map.remove(serialNumber);
         }
 
-
         var xcTest = xcMap.get(serialNumber);
         if (xcTest) {
             xcTest.stop();
             xcMap.remove(serialNumber);
+        }
+
+        var adb1 = adbMap.get(serialNumber);
+        if (adb1) {
+            adbMap.remove(serialNumber);
+        }
+
+        var uiautomator = uiautomatorMap.get(serialNumber);
+        if (uiautomator) {
+            uiautomatorMap.remove(serialNumber);
         }
 
         this.body = {
@@ -204,9 +219,36 @@ function *stopDevices() {
 
 }
 
+function* getSourceForAndroid(wsConnection,serialNumber){
 
-function* runDevices() {
-    console.log('start--');
+    var adb1 = adbMap.get(serialNumber);
+    var uiautomator =uiautomatorMap.get(serialNumber);
+
+    yield uiautomator.send({
+        cmd: 'getSource',
+        args: {
+        }
+    });
+
+    const tmpDir = adb1.getTmpDir();
+    const xmlData = yield adb1.shell(`cat ${tmpDir}/macaca-dump.xml`);
+    const xmlHackData = yield adb1.shell(`cat ${tmpDir}/local/tmp/macaca-dump.xml`);
+
+    var xml = xmlData.length > xmlHackData.length ? xmlData : xmlHackData;
+
+    wsConnection.send(JSON.stringify({source: xml2map.tojson(xml)}));
+
+}
+
+function* runDevices(){
+    yield runOrRecordDevices.call(this,false);
+}
+
+function* recordDevices(){
+    yield runOrRecordDevices.call(this,true);
+}
+
+function* runOrRecordDevices(isRecord) {
     var deviceId = this.params.deviceId;
 
 
@@ -458,7 +500,7 @@ function* runDevices() {
                                     console.log('type', type);
                                     switch (type) {
                                         case 'command':
-                                            saveCommand(serialNumber, message.data.cmd, message.data.data, touchStream);
+                                            saveCommand(serialNumber, message.data.cmd, message.data.data, touchStream,wsConnection);
                                             break;
                                     }
 
@@ -468,9 +510,7 @@ function* runDevices() {
                                     console.info('Lost a client')
                                     stream.end();
                                     touchStream.end();
-                                    // client.exit;
                                 });
-                                // return stream
                             })
                             .catch(function (err) {
                                 console.log(err);
@@ -479,11 +519,57 @@ function* runDevices() {
 
             }));
 
+            var sourcePort;
+            if(isRecord){
+                var adb1 = new ADB();
+                adb1.setDeviceId(serialNumber);
+                var uiautomator = new UIAutomator();
+                yield uiautomator.init(adb1);
+                adbMap.set(serialNumber,adb1);
+                uiautomatorMap.set(serialNumber, uiautomator);
+
+                sourcePort = yield detect(9766);
+                var sourceServer = http.createServer();
+                sourceServer.listen(sourcePort, function () {
+                    console.log('----', sourcePort);
+                });
+
+                var sourceWsServer = new WebSocketServer({
+                    httpServer: sourceServer,
+                    autoAcceptConnections: true
+                });
+
+                sourceWsServer.on('connect', co.wrap(function*(connection) {
+                    connection.on('message', function (message) {
+                        var message = message.utf8Data;
+                        try {
+                            message = JSON.parse(message);
+                        }
+                        catch (e) {
+                        }
+                        ;
+                        var type = message.type;
+                        switch (type) {
+                            case 'command':
+                                saveCommand(serialNumber, message.data.cmd, message.data.data, null,connection);
+                                break;
+                        }
+
+                    });
+                    connection.on('close', function (reasonCode, description) {
+                        wsConnection = null;
+                        console.info('Lost a client')
+                    });
+
+                }));
+
+            }
+
             console.log('run success,webSocketPort:', serverPort);
 
             this.body = {
                 success: true,
-                data: {webSocketPort: serverPort}
+                data: {webSocketPort: serverPort,sourcePort:sourcePort}
             };
 
         }
@@ -499,44 +585,49 @@ function* runDevices() {
     }
 }
 
-function saveCommand(udid, cmd, data, touchStream) {
+function saveCommand(udid, cmd, data, touchStream,wsConnection) {
 
-    console.log(cmd);
+    co(function*() {
 
-    switch (cmd) {
-        case 'click':
-            console.log('1-start');
-            // touchStream.write('r\n');
-            touchStream.write('d 0 ' + data.touchX + ' ' + data.touchY + ' 20\n');
-            touchStream.write('c\n');
-            touchStream.write('u 0\n');
-            touchStream.write('c\n');
-            console.log('1-end');
+        switch (cmd) {
+            case 'click':
+                console.log('1-start');
+                // touchStream.write('r\n');
+                touchStream.write('d 0 ' + data.touchX + ' ' + data.touchY + ' 20\n');
+                touchStream.write('c\n');
+                touchStream.write('u 0\n');
+                touchStream.write('c\n');
+                console.log('1-end');
 
-            break;
-        case 'swipe':
-            // touchStream.write('r\n');
-            console.log('2-start');
+                break;
+            case 'swipe':
+                // touchStream.write('r\n');
+                console.log('2-start');
 
-            touchStream.write('d 0 ' + data.startX + ' ' + data.startY + ' 20\n');
-            touchStream.write('c\n');
-            touchStream.write('m 0 ' + data.endX + ' ' + data.endY + ' 20\n');
-            touchStream.write('c\n');
-            touchStream.write('u 0\n');
-            touchStream.write('c\n');
-            console.log('2-end');
+                touchStream.write('d 0 ' + data.startX + ' ' + data.startY + ' 20\n');
+                touchStream.write('c\n');
+                touchStream.write('m 0 ' + data.endX + ' ' + data.endY + ' 20\n');
+                touchStream.write('c\n');
+                touchStream.write('u 0\n');
+                touchStream.write('c\n');
+                console.log('2-end');
 
-            break;
-        case 'back':
-            client.shell(udid, 'input keyevent 4');
-            break;
-        case 'home':
-            client.shell(udid, 'input keyevent 3');
-            break;
-        case 'menu':
-            client.shell(udid, 'input keyevent 82');
-            break;
-    }
+                break;
+            case 'back':
+                client.shell(udid, 'input keyevent 4');
+                break;
+            case 'home':
+                client.shell(udid, 'input keyevent 3');
+                break;
+            case 'menu':
+                client.shell(udid, 'input keyevent 82');
+                break;
+            case 'getSource':
+                yield getSourceForAndroid(wsConnection,udid);
+                break;
+        }
+    });
+
 
 }
 

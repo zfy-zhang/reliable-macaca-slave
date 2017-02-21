@@ -273,7 +273,7 @@ function* runOrRecordDevices(isRecord) {
                 desiredCapabilities: {}
             });
 
-            const status = yield _.request(`http://${xctest.proxyHost}:${xctest.proxyPort}/status`, 'get', {});
+            const status = yield _.request(`http://${xctest.proxyHost}:${xctest.proxyPort}/status?time=`+new Date(), 'get', {});
             var sessionId = JSON.parse(status).sessionId;
             console.log(sessionId);
 
@@ -309,6 +309,9 @@ function* runOrRecordDevices(isRecord) {
                         case 'mobileAppInfo':
                             saveCommandForIOS(xctest, wsConnection, sessionId, 'mobileAppInfo');
                             break;
+                        // case 'getSource':
+                        //     saveCommandForIOS(xctest, wsConnection, sessionId, 'getSource');
+                        //     break;
                     }
 
                 });
@@ -662,11 +665,32 @@ function saveCommandForIOS(xctest, wsConnection, sessionId, cmd, data) {
                 break;
             case 'mobileAppInfo':
                 try {
+                    console.log(`http://${xctest.proxyHost}:${xctest.proxyPort}/screenshot`);
                     const screenshot = yield _.request(`http://${xctest.proxyHost}:${xctest.proxyPort}/screenshot`, 'get', {});
                     const base64Data = JSON.parse(screenshot).value;
-                    // console.log('base64Data',base64Data);
+                    // console.log(base64Data);
+
+                    console.log(`http://${xctest.proxyHost}:${xctest.proxyPort}/session/${sessionId}/source`);
+                    const source = yield _.request(`http://${xctest.proxyHost}:${xctest.proxyPort}/session/${sessionId}/source`, 'get', {});
+                    //
+                    // console.log(JSON.parse(source).value);
                     sendWsMessage(wsConnection, 'mobileAppInfo', {
-                        screenshot: base64Data
+                        'screenshot': base64Data,
+                        'source': JSON.parse(source).value
+                    });
+                } catch (ex) {
+                    console.log(ex);
+                }
+                break;
+
+            case 'getSource':
+                try {
+                    console.log(`http://${xctest.proxyHost}:${xctest.proxyPort}/session/${sessionId}/source`);
+                    const source = yield _.request(`http://${xctest.proxyHost}:${xctest.proxyPort}/session/${sessionId}/source`, 'get', {});
+
+                    console.log(JSON.parse(source).value);
+                    sendWsMessage(wsConnection, 'getSource', {
+                        'source': JSON.parse(source).value
                     });
                 } catch (ex) {
                     console.log(ex);
@@ -688,6 +712,7 @@ function sendWsMessage(wsConnection, type, data) {
             type: type,
             data: data
         };
+        // console.log(JSON.stringify(message));
         wsConnection.send(JSON.stringify(message));
     }
 }

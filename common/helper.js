@@ -2,6 +2,7 @@
 
 var _ = require('xutil');
 const request = require('request');
+var logger = require('./logger');
 
 const parse = require('co-body');
 

@@ -10,19 +10,14 @@ var _ = require('../../common/helper');
 var logger = require('../../common/logger');
 var adb = require('adbkit');
 var client = adb.createClient();
-
+const options = require('../../common/config').get();
 
 var cp = require('child_process');
 var request = require('request');
 
 
-
-var mongodb = require('mongodb')
-var MongoClient = require('mongodb').MongoClient;
-var DB_CONN_STR = 'mongodb://localhost:27017/reliable';
-
 var mongo=require("mongodb");
-var host="localhost";
+var host= options.businessUrls.dataSourceadress;
 var port='27017';
 var server=mongo.Server(host,port,{auto_reconnect:true});
 var db=new mongo.Db("reliable",server,{safe:true});
@@ -32,6 +27,7 @@ var controllers = require('../../web/controllers');
 var arrDeviceList =[];
 var slaveId =[];
 var allDeviceList = [];
+var unauthorizedList = [];
 
 var resources = {
     bin: {
@@ -67,11 +63,14 @@ function contains(arr,obj){
   var i = arr.length;
   while(i--){
     if(arr[i].id===obj){
+
       return true;
     }
   }
   return false;
 }
+
+
 
 
 
@@ -85,9 +84,6 @@ function installMiniCapAndTouch() {
                 yield client.listDevices()
                     .then(function (devices) {
                       try {
-                        //body...
-                        console.log('devices====================',devices);
-
 
                         db.collection("devices", function (err,collection) {
                         collection.find().toArray(function(err,docs){
@@ -101,12 +97,23 @@ function installMiniCapAndTouch() {
                             })
 
 
-                            if(devices==''){
-                              console.log('没有查询到可用的设备');
+                            var OKdevices = [];
+                            for (let i = 0; i < devices.length; i++) {
+                              if (devices[i].type=='device') {
+                                OKdevices.push(devices[i]);
+                              }
+                            }
+
+
+
+
+                            if(OKdevices==''){
+
                               for(var j=0;j<allDeviceList.length;j++){
                                 db.collection('devices',function(err,collection){
-                                collection.update({serialNumber:allDeviceList[i].serialNumber},{$set:{status:1}},{safe:true},function(err,result){
-                                          console.log('success');
+
+                                collection.update({serialNumber:allDeviceList[j].serialNumber},{$set:{status:4}},{safe:true},function(err,result){
+
                                 });
                                 })
                               }
@@ -115,16 +122,14 @@ function installMiniCapAndTouch() {
 
 
 
-                          console.log('deviceID ---------');
                       } catch (err) {
                         console.log(err);
                       }
                         return Promise.map(devices, function (device) {
-                          console.log('deviceID ---------',device.id);
-                          console.log('deivceType========',device.type);
-                          if(device.type!='unauthorized'&&device.type!='offline'){
+                          if(device.type=='device'){
                             return client.getProperties(device.id)
                                 .then(function (properties) {
+                                
                                   try {
                                     var address = getIPAdress();
 
@@ -135,16 +140,11 @@ function installMiniCapAndTouch() {
                                               if(err){
                                                         console.log(err);
                                                 }
-                                                console.log('---------address----------',address);
-                                                console.log('-----------------docs---------------',docs);
+
                                                 slaveId.push(docs[0]._id);
 
                                               })
                                             })
-
-
-
-
 
 
                                       db.collection("devices", function (err,collection) {
@@ -153,13 +153,8 @@ function installMiniCapAndTouch() {
                                           //body...
                                           if(err) throw err;
                                               else{
-                                                  console.log('device.id',device.id);
+
                                                   collection.find({serialNumber:{$in:[device.id]}}).toArray(function(err,docs){
-
-                                                    console.log('**************************',docs.length);
-                                                    console.log('--------------------------',allDeviceList.length);
-
-
 
                                                     if(err) throw  err;
                                                       if (docs==''){
@@ -169,7 +164,7 @@ function installMiniCapAndTouch() {
                                                         strText.replace(/Physical size: (.+?)\s+\r?\n/g, function (all, devicesName) {
                                                             resolution = devicesName.toString().trim();
                                                         });
-                                                        console.log('this is new device');
+
                                                         arrDeviceList.push({
                                                             serialNumber: device.id,
                                                             model: properties['ro.product.model'],
@@ -183,7 +178,7 @@ function installMiniCapAndTouch() {
                                                             status: '1'
                                                         });
                                                         var screen = resolution.split('x');
-                                                        console.log('this is arrDeviceList',arrDeviceList);
+
                                                         var insertData = {"plantForm":arrDeviceList[0].plantForm,
                                                         "screenHeight" :screen[1],
                                                         "screenWidth" : screen[0],
@@ -198,12 +193,12 @@ function installMiniCapAndTouch() {
                                                         "__v" : 0
 
                                                       };
-                                                      console.log('this insertData',insertData);
+
                                                         collection.insert(insertData,function(error,result){
                                                           if (error) {
                                                             console.log(error);
                                                           }else{
-                                                            console.log(result.result.n,'~~~~~~~~');
+                                                            console.log(result.result.n);
                                                           }
 
                                                         });
@@ -212,33 +207,32 @@ function installMiniCapAndTouch() {
                                                         //db.close();
 
                                                       }else{
-                                                        console.log('----------已经有设备了-------');
+
                                                         for(var i=0;i<allDeviceList.length;i++){
                                                             //片段当前设备在数据库是否存在
-                                                            console.log('he');
+
                                                             var checkDevice = contains(devices,allDeviceList[i].serialNumber);
-                                                            console.log('============================+++++++++allDeviceList+++++++++================ ',allDeviceList[i].serialNumber);
-                                                            console.log('============================++++++++++++++++++================ ',checkDevice);
+
                                                             if(checkDevice==false){
-                                                                console.log('change  device status ------111111--------------------');
+
                                                               db.collection('devices',function(err,collection){
                                                               collection.update({serialNumber:allDeviceList[i].serialNumber},{$set:{status:4}},{safe:true},function(err,result){
-                                                                        console.log('success');
+
                                                               });
                                                               })
                                                             }else if(checkDevice==true){
                                                               if(allDeviceList[i].status===4){
-                                                                console.log('change  device status ----------44444----------------');
+                                                                console.log('设备状态改为  1  ');
                                                                 db.collection('devices',function(err,collection){
                                                                 collection.update({serialNumber:allDeviceList[i].serialNumber},{$set:{status:1}},{safe:true},function(err,result){
-                                                                          console.log('success');
+
                                                                 });
                                                                 })
                                                               }
                                                             }
                                                           }
                                                         //  db.close();
-                                                          console.log(docs);
+
                                                           slaveId=[];
 
                                                         }
@@ -257,7 +251,7 @@ function installMiniCapAndTouch() {
 
                               return client.readdir(device.id, '/data/local/tmp')
                                   .then(function (files) {
-                                    console.log('======================================================================');
+
                                       var hasMiniTouch = false;
                                       var hasMiniCap = false;
                                       var hasMiniCapSo = false;
@@ -369,22 +363,6 @@ function installMiniCapAndTouch() {
   });
 }
 
-/**
- * 查询本地的设备信息
- * @param slave
- * @returns {*}
- */
-function *requestByUrl() {
-    try {
-        var result = yield request({
-            uri: 'localhost:8080/devices',
-            method: 'get'
-        });
-        result = JSON.parse(result.body);
-        return result;
-    } catch (e) {
-        return false;
-    }
-}
+
 
 module.exports = installMiniCapAndTouch;

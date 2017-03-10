@@ -16,8 +16,8 @@ const defaultCfg = {
   database: `mongodb://${mongo}/reliable`,
   businessUrls:{
     //数据库所在电脑的IP
-    dataSourceadress :'localhost',
-
+    dataSourceAdress :'localhost',
+    dataSourcePort :'27017',
   }
 };
 

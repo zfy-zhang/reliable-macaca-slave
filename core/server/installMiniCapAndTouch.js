@@ -17,8 +17,8 @@ var request = require('request');
 
 
 var mongo=require("mongodb");
-var host= options.businessUrls.dataSourceadress;
-var port='27017';
+var host= options.businessUrls.dataSourceAdress;
+var port=options.businessUrls.dataSourcePort;
 var server=mongo.Server(host,port,{auto_reconnect:true});
 var db=new mongo.Db("reliable",server,{safe:true});
 
